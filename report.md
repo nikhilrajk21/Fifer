@@ -6,8 +6,6 @@ Repository: [nikhilrajk21/Fifer](https://github.com/nikhilrajk21/Fifer).
 Branch: `master`.
 Initial commit: `6ba3f7920c6e9daaf20a6ac2560a9ee3b5201408` — “Initialize Fifer Assignment 3 project”.
 
-The final design-package commit does not yet exist. These documentation changes remain uncommitted; no commit or push was performed.
-
 ## Application concept
 
 Fifer is a local coursework prototype for a fictional student experiencing conflict, self-doubt, or an emotionally difficult day, such as disagreement about a group assignment. It offers quick access to 5-4-3-2-1 sensory grounding without requiring a personal narrative.
