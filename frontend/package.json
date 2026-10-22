@@ -1,0 +1,19 @@
+{
+  "name": "fifer-frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test src/grounding.test.js"
+  },
+  "dependencies": {
+    "vue": "3.5.44"
+  },
+  "devDependencies": {
+    "vite": "8.3.4",
+    "@vitejs/plugin-vue": "6.0.10"
+  }
+}

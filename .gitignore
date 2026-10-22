@@ -1,6 +1,8 @@
 # Local configuration and credentials
 .env
 .env.*
+# Safe backend template; local environment files remain ignored.
+!backend/.env.example
 
 # Python
 backend/.venv/
