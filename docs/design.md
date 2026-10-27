@@ -1,5 +1,23 @@
 # Fifer — Assignment 3.1 design specification
 
+## Current Part 3.2 implementation and acceptance
+
+The later implementation rerun has 62/62 backend passes, and the corrected setup-disconnect case passed 25 additional consecutive runs. Its abrupt-disconnect portion now exercises the ASGI endpoint directly, avoiding the intermittent Starlette TestClient context-exit artifact while still checking upstream close and reservation release; a fresh TestClient session checks restart. The earlier 60-pass/1-error result remains the evidence that prompted the revision.
+
+This update precedes the preserved 3.1 design record below. The current app is implemented for core grounding/storage and mock text/voice, so old no-application/no-database/pending-consent statements are historical. [Current report](../report.md), [3.1 report archive](../report-3-1.md), [acceptance](verification/part-3-2-acceptance.md), [research](research.md) and [course requirements](assignment-3-submission-requirements.md) define the evidence boundaries.
+
+Owner-relayed instructor sensory feedback became a bundled original classroom image with five matching See examples (window, clock, blue book, desk, plant), alt text and optional typing. Feel offers comfortable imagined/present sensations without touching; Hear offers plausible imagined birds/leaves/footsteps; Smell/Taste offer None/Not sure/Skip without consumption or scent-finding. Fifer does not sense surroundings. Source: [selected request](../prompts/assignment-3-2-evidence.md). No instructor evaluation or mark is claimed.
+
+The implemented sequence is start → See 5 → Feel 4 → optional check-in → Hear 3 → Smell 2 → Taste 1 → completion → explicit Finish. All responses are optional/unscored. Pause/Resume, immediate Stop and independent static Support preserve user agency. SQLite distinguishes completed from stopped; only completed usage supplies a dismissible recent suggestion. Saved progress opens paused after refresh with no sensory answers. Retention/consent/deletion are approved and implemented, not open proposals.
+
+Text Chat is approved fictional curated app-help with saving/sharing OFF separately by default. Normal runtime is a local mock; the approved `gemini-2.5-flash` adapter is wired through FastAPI and the existing Chat UI behind two explicit server-process gates, while all current adapter tests use mock transport. Voice is optional inside Chat/standalone, outside grounding: one proposed gemini-3.8-live model over FastAPI WebSocket/PCM, no OpenAI SDP/WebRTC or second-model voice pipeline. It currently emits a synthetic tone. Mute preserves session/playback; End tears down resources; interruption conservatively ends voice. No real provider call or real Live connector exists, so actual model demonstration remains a course requirement gap.
+
+Observed active time 31.021 s, setup 32.528 s, pause 5.941 s, Support 0.109 s came from one fast automated fictional run, not human pacing evidence. Intended 60–75 seconds/under 90 remains a design target; users are never forced to finish. Calm palette, optional input and persistent controls balance R1–R4/D1–D6; extra text/voice choices add reading complexity and stay outside the core exercise. Browser keyboard/390×844 smoke checks pass, not full accessibility/usability. Detailed Figma screens and broader evaluation remain pending.
+
+## Preserved Part 3.1 design record (historical)
+
+The following sections record the original design milestone; their proposed/open/not-implemented language is not current status. The original flow image and full research mapping are unchanged.
+
 Updated: 2026-10-15. Design milestone only; no working application exists. The supplied course findings and complete mapping are recorded in [research.md](research.md).
 
 ## Concept and selected skill

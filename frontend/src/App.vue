@@ -2,8 +2,11 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import EmergencySupport from './components/EmergencySupport.vue'
 import HistoryPanel from './components/HistoryPanel.vue'
+import GroundingPrompt from './components/GroundingPrompt.vue'
+import ChatPanel from './components/ChatPanel.vue'
+import VoicePanel from './components/VoicePanel.vue'
 import { CHECKINS, STEPS, createExperience, transition } from './grounding.js'
-import { loadHistory, reviewSession, saveSession, setMessageOptIn, deleteSession, clearHistory } from './api.js'
+import { loadHistory, reviewSession, saveSession, setMessageOptIn, deleteSession, clearHistory, reviewChat, deleteChat } from './api.js'
 import { newSessionRecord, sessionSnapshot, sessionPayload, restoreExperience, createSaveQueue } from './persistence.js'
 
 const experience = ref(createExperience(performance.now()))
@@ -12,6 +15,10 @@ const helpOpen = ref(false)
 const heading = ref(null)
 const history = ref(null)
 const historyOpen = ref(false)
+const chatOpen = ref(false)
+const chatPanel = ref(null)
+const voiceOpen = ref(false)
+const voicePanel = ref(null)
 const historyDetail = ref(null)
 const historyBusy = ref(false)
 const historyError = ref('')
@@ -57,6 +64,10 @@ const nextLabel = computed(() => {
 })
 
 function act(type, value) {
+  if (['SUPPORT', 'STOP', 'HOME', 'BEGIN', 'PAUSE'].includes(type)) voicePanel.value?.stop()
+  if (['STOP', 'HOME', 'BEGIN'].includes(type)) voiceOpen.value = false
+  if (['SUPPORT', 'STOP', 'HOME', 'BEGIN'].includes(type)) chatPanel.value?.stop('Chat stopped; pending replies will be ignored.')
+  if (['STOP', 'HOME', 'BEGIN'].includes(type)) chatOpen.value = false
   const before = experience.value
   const now = performance.now()
   if ((type === 'SUPPORT' || type === 'PAUSE') && !experience.value.overlay) overlayReturnFocus = document.activeElement
@@ -66,7 +77,7 @@ function act(type, value) {
   experience.value = after
   // Support opens from static content immediately, without a save/read request.
   // Its elapsed time is captured on Return, Stop, or a later checkpoint.
-  if (!['SELECT', 'SUPPORT', 'HOME', 'DISMISS_RECENT'].includes(type)) capture(type, before, after)
+  if (!['SELECT', 'WRITE', 'SUPPORT', 'HOME', 'DISMISS_RECENT'].includes(type)) capture(type, before, after)
   if (type === 'HOME') currentRecord = null
   if (type === 'DISMISS_RECENT') recentDismissed.value = true
   if (type === 'HOME' || type === 'BEGIN') helpOpen.value = false
@@ -122,10 +133,14 @@ function resumeSaved(record) {
 }
 
 async function openHistory() {
+  voicePanel.value?.stop()
+  voiceOpen.value = false
+  const stopping = chatPanel.value?.stop('History opened; pending replies will be ignored.')
+  chatOpen.value = false
   historyOpen.value = true
   historyDetail.value = null
   historyError.value = ''
-  try { await readHistory(); connection.value = 'ready' }
+  try { await stopping; await readHistory(); connection.value = 'ready' }
   catch { historyError.value = 'History unavailable. No change was made to saved data.'; connection.value = 'unavailable' }
 }
 
@@ -137,6 +152,13 @@ async function historyAction(type, value) {
   try {
     const epoch = history.value.settings.history_epoch
     if (type === 'review') historyDetail.value = await reviewSession(value)
+    if (type === 'review-chat') historyDetail.value = await reviewChat(value)
+    if (type === 'delete-chat') {
+      await deleteChat(value, epoch)
+      historyDetail.value = null
+      await readHistory()
+      storageNotice.value = 'Chat metadata and its saved messages deleted. Daily anonymous quota counters remain for this UTC day.'
+    }
     if (type === 'optin') {
       const settings = await setMessageOptIn(value, epoch)
       history.value = { ...history.value, settings }
@@ -150,7 +172,7 @@ async function historyAction(type, value) {
       if (currentRecord?.id === value) currentRecord = null
       historyRequest++
       const sessions = history.value.sessions.filter(item => item.id !== value)
-      history.value = { settings, sessions,
+      history.value = { ...history.value, settings, sessions,
         recent_completed: sessions.filter(item => item.status === 'completed').sort((a,b) => b.ended_at.localeCompare(a.ended_at))[0] || null }
       storageNotice.value = 'Session and its linked conversations/messages deleted.'
     }
@@ -160,9 +182,9 @@ async function historyAction(type, value) {
       writer.clear()
       currentRecord = null
       experience.value = createExperience(performance.now())
-      history.value = { settings, sessions: [], recent_completed: null }
+      history.value = { settings, sessions: [], chats: [], recent_completed: null }
       historyDetail.value = null
-      storageNotice.value = 'All local history cleared. Message saving is OFF.'
+      storageNotice.value = 'All session/message history cleared. Message saving is OFF; today’s anonymous text and voice quota counters remain.'
       nextTick(() => document.getElementById('activity-heading')?.focus())
     }
   } catch (error) {
@@ -171,7 +193,7 @@ async function historyAction(type, value) {
   } finally { historyBusy.value = false }
 }
 
-watch([() => experience.value.screen, () => historyOpen.value], async () => {
+watch([() => experience.value.screen, () => historyOpen.value, () => chatOpen.value, () => voiceOpen.value], async () => {
   await nextTick()
   document.getElementById('activity-heading')?.focus()
 })
@@ -258,7 +280,10 @@ onUnmounted(() => { disposed = true; clearInterval(checkpointTimer); window.remo
         <section class="activity-card" aria-labelledby="activity-heading">
           <HistoryPanel v-if="historyOpen" :history="history" :detail="historyDetail" :busy="historyBusy" :pending="sync.pending" :error="historyError"
             @close="historyOpen = false" @review="historyAction('review', $event)" @resume="resumeSaved"
-            @delete="historyAction('delete', $event)" @clear="historyAction('clear')" @optin="historyAction('optin', $event)" />
+            @delete="historyAction('delete', $event)" @clear="historyAction('clear')" @optin="historyAction('optin', $event)"
+            @review-chat="historyAction('review-chat', $event)" @delete-chat="historyAction('delete-chat', $event)" />
+          <ChatPanel v-else-if="chatOpen" ref="chatPanel" @close="chatOpen = false" @privacy="openHistory" />
+          <VoicePanel v-else-if="voiceOpen" ref="voicePanel" @close="voiceOpen = false" />
           <template v-else-if="experience.screen === 'start'">
             <p class="eyebrow">A place to begin</p>
             <h1 id="activity-heading" ref="heading" tabindex="-1">What would you<br class="desktop-break" /> like to do?</h1>
@@ -287,6 +312,8 @@ onUnmounted(() => { disposed = true; clearInterval(checkpointTimer); window.remo
               <p class="gentle-note">Opens paused. Time while this page was closed is not counted.</p>
             </div>
             <p class="gentle-note">No typing or personal disclosure is needed.</p>
+            <button class="button secondary wide" @click="chatOpen = true">Chat · optional text assistant</button>
+            <button class="button secondary wide" @click="voiceOpen = true">Voice · optional local mock</button>
             <button class="text-button" @click="openHistory">Local history and privacy</button>
           </template>
 
@@ -294,14 +321,8 @@ onUnmounted(() => { disposed = true; clearInterval(checkpointTimer); window.remo
             <div class="step-heading-row"><p class="eyebrow">Category {{ stepNumber }} of 5 · {{ step.name }}</p>
               <span class="sense-count" aria-hidden="true">{{ step.count }}</span></div>
             <h1 id="activity-heading" ref="heading" tabindex="-1">{{ step.title }}</h1>
-            <p class="intro-copy">{{ step.hint }}</p>
-            <div class="choices" role="group" :aria-label="step.name + ' — optional answers'">
-              <button v-for="choice in step.choices" :key="choice" class="sensory-choice"
-                      :aria-pressed="selected.includes(choice)" @click="act('SELECT', choice)">
-                <span class="selection-mark" aria-hidden="true">{{ selected.includes(choice) ? '✓' : '' }}</span>{{ choice }}
-              </button>
-            </div>
-            <p class="gentle-note">Optional examples. You can continue with no selections.</p>
+            <GroundingPrompt :step="step" :selected="selected" :response="experience.responses[step.id] || ''"
+              @select="act('SELECT', $event)" @write="act('WRITE', $event)" />
           </template>
 
           <template v-else-if="experience.screen === 'checkin'">
@@ -324,6 +345,8 @@ onUnmounted(() => { disposed = true; clearInterval(checkpointTimer); window.remo
             <p class="intro-copy">You reached the end. You can finish here or return to your choices.</p>
             <button v-if="!experience.finished" class="button primary wide" @click="act('FINISH')">Finish activity</button>
             <button class="button secondary wide" @click="act('HOME')">Return to choices</button>
+            <button v-if="experience.finished" class="text-button" @click="chatOpen = true">Chat · optional text assistant</button>
+            <button v-if="experience.finished" class="text-button" @click="voiceOpen = true">Voice · optional local mock</button>
             <p v-if="experience.finished" class="gentle-note">A recent-skill suggestion appears after completion is saved locally. It is always optional.</p>
             <button v-if="experience.finished" class="text-button" @click="openHistory">Local history and privacy</button>
           </template>
@@ -345,7 +368,7 @@ onUnmounted(() => { disposed = true; clearInterval(checkpointTimer); window.remo
             <button class="button quiet leave-button" @click="act('STOP')">Stop/Leave</button>
           </div>
           <div v-if="step || experience.screen === 'checkin'" class="advance-controls">
-            <button v-if="step" class="text-button continue-empty" @click="act('NEXT')">Continue without selecting</button>
+            <button v-if="step" class="text-button continue-empty" @click="act('SKIP')">Skip this step</button>
             <button class="button primary" @click="act('NEXT')">{{ nextLabel }} <span aria-hidden="true">→</span></button>
           </div>
         </div>

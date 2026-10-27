@@ -1,20 +1,34 @@
 // Application-owned content and transitions. No model, storage, network, or timers.
+export const SEE_SCENE = Object.freeze({
+  src: new URL('./assets/classroom.svg', import.meta.url).href,
+  alt: 'Illustrated classroom: a large window on the left, a round wall clock above a desk, a blue book on the desk, and a leafy plant in a pot on the right.',
+  credit: 'Original Fifer classroom illustration, created for this project. No external image source.',
+  examples: Object.freeze([
+    { id: 'window', label: 'A window' },
+    { id: 'clock', label: 'A wall clock' },
+    { id: 'book', label: 'A blue book' },
+    { id: 'desk', label: 'A desk' },
+    { id: 'plant', label: 'A potted plant' },
+  ].map(Object.freeze)),
+})
+
 export const STEPS = Object.freeze([
-  { id: 'see', name: 'See', count: 5, title: 'Notice five things you can see.',
-    hint: 'Notice what is already around you. Selecting an answer is optional.',
-    choices: ['A window', 'A book', 'A light', 'A desk', 'A bag'] },
-  { id: 'feel', name: 'Feel', count: 4, title: 'Notice four things you can feel.',
-    hint: 'You can notice an existing sensation. You do not need to touch anything.',
-    choices: ['Feet resting on the floor', 'The chair beneath you', 'Clothing against your skin', 'Air around you'] },
-  { id: 'hear', name: 'Hear', count: 3, title: 'Notice three things you can hear.',
-    hint: 'Notice sounds already present, or continue without an answer.',
-    choices: ['A fan or steady background sound', 'Footsteps', 'An outside sound'] },
-  { id: 'smell', name: 'Smell', count: 2, title: 'Notice two things you can smell, if available.',
-    hint: 'There is no need to find a smell or move to another place.',
-    choices: ['A familiar scent already present', 'No noticeable smell'] },
-  { id: 'taste', name: 'Taste', count: 1, title: 'Notice one taste already present, if available.',
-    hint: 'There is no need to eat or drink anything.',
-    choices: ['A taste already present', 'No noticeable taste'] },
+  { id: 'see', name: 'See', count: 5, title: 'What five things can you see in this picture?',
+    hint: 'Explore the classroom picture or its description. Type a few visible things, choose examples, or skip. Five is a prompt, not a required total.',
+    image: SEE_SCENE,
+    choices: SEE_SCENE.examples.map(item => item.label) },
+  { id: 'feel', name: 'Feel', count: 4, title: 'Imagine up to four comfortable things you could feel.',
+    hint: 'Use the imagined classroom or your present surroundings. You might imagine a smooth desktop or soft fabric, or notice an existing comfortable sensation. You do not need to touch anything.',
+    choices: ['An imagined smooth desktop', 'Imagined soft fabric', 'Clothing already resting against your skin', 'Feet already resting on the floor'] },
+  { id: 'hear', name: 'Hear', count: 3, title: 'Imagine or notice up to three sounds.',
+    hint: 'If you like, imagine a garden or open area: birds calling, wind rustling leaves, or footsteps on a path. Or use sounds already in your present surroundings. These are possibilities, not sounds the app has detected.',
+    choices: ['Imagined birds calling', 'Imagined wind rustling leaves', 'Imagined footsteps on a path'] },
+  { id: 'smell', name: 'Smell', count: 2, title: 'Imagine or notice up to two scents, if comfortable.',
+    hint: 'You can imagine a familiar scent, use one already present, choose none or not sure, or skip. There is no need to seek out or smell anything.',
+    choices: ['Imagined fresh coffee', 'Imagined flowers', 'None', 'Not sure'] },
+  { id: 'taste', name: 'Taste', count: 1, title: 'Imagine or notice one taste, if comfortable.',
+    hint: 'You can imagine a familiar taste, use one already present, choose none or not sure, or skip. There is no need to eat, drink, or try anything.',
+    choices: ['An imagined familiar taste', 'None', 'Not sure'] },
 ].map(step => Object.freeze({ ...step, choices: Object.freeze(step.choices) })))
 
 export const CHECKINS = Object.freeze(['A little better', 'About the same', 'A little harder', 'Not sure'])
@@ -23,7 +37,7 @@ const ACTIVITY = new Set(SEQUENCE)
 
 export function createExperience(now = 0, recentCompleted = false) {
   return {
-    screen: 'start', overlay: null, selections: {}, checkin: null,
+    screen: 'start', overlay: null, selections: {}, responses: {}, checkin: null,
     started: false, finished: false, recentCompleted,
     setupStartedAt: now, lastAt: now, setupMs: 0,
     activeMs: 0, pausedMs: 0, supportMs: 0,
@@ -43,7 +57,7 @@ export function transition(state, action, now = 0) {
   let next = settle(state, now)
   if (action.type === 'SUPPORT') return { ...next, overlay: 'support' }
   if (action.type === 'STOP') {
-    return { ...next, screen: 'stopped', overlay: null, started: false, finished: false, selections: {}, checkin: null }
+    return { ...next, screen: 'stopped', overlay: null, started: false, finished: false, selections: {}, responses: {}, checkin: null }
   }
   if (action.type === 'CLOSE_SUPPORT' && state.overlay === 'support') {
     return { ...next, overlay: state.started && !state.finished ? 'pause' : null }
@@ -73,16 +87,25 @@ export function transition(state, action, now = 0) {
         : [...selected, action.value],
     } }
   }
+  if (action.type === 'WRITE' && STEPS.some(step => step.id === state.screen) && typeof action.value === 'string') {
+    return { ...next, responses: { ...state.responses, [state.screen]: action.value.slice(0, 500) } }
+  }
   if (action.type === 'CHECKIN' && state.screen === 'checkin' && CHECKINS.includes(action.value)) {
     return { ...next, checkin: state.checkin === action.value ? null : action.value }
   }
   if ((action.type === 'NEXT' || action.type === 'SKIP') && SEQUENCE.includes(state.screen) && state.screen !== 'complete') {
     const screen = SEQUENCE[SEQUENCE.indexOf(state.screen) + 1]
     if (state.screen === 'checkin' && action.type === 'SKIP') next.checkin = null
+    if (action.type === 'SKIP') {
+      next.selections = { ...state.selections }
+      next.responses = { ...state.responses }
+      delete next.selections[state.screen]
+      delete next.responses[state.screen]
+    }
     return { ...next, screen }
   }
   if (action.type === 'FINISH' && state.screen === 'complete' && !state.finished) {
-    return { ...next, finished: true, started: false, recentCompleted: true }
+    return { ...next, finished: true, started: false, recentCompleted: true, responses: {} }
   }
   return next
 }

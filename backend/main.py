@@ -12,6 +12,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from storage import Store, session, settings
+from chat import install_chat
+from gemini_text import GeminiTextProvider
+from voice import install_voice
 
 
 STEPS = ("see", "feel", "checkin", "hear", "smell", "taste", "complete")
@@ -85,7 +88,7 @@ def require_epoch(db, expected):
         raise HTTPException(409, "History changed or was cleared. Reload before saving new activity.")
 
 
-def create_app(db_path=None):
+def create_app(db_path=None, *, chat_provider=None, voice_provider=None, voice_limits=None):
     path = Path(db_path or os.environ.get("FIFER_DB_PATH") or Path(__file__).parent / "data" / "fifer.sqlite3")
     store = Store(path)
 
@@ -105,14 +108,16 @@ def create_app(db_path=None):
     @app.get("/api/health")
     async def health():
         return {"status": "ok", "coursework_prototype": True,
-                "persistence_enabled": True, "model_enabled": False}
+                "persistence_enabled": True,
+                "model_enabled": bool(getattr(app.state, "chat_live_calls_enabled", False))}
 
     @app.get("/api/history")
     def history():
         with store.connection() as db:
             rows = [dict(row) for row in db.execute("SELECT * FROM sessions ORDER BY started_at DESC, id DESC")]
             recent = db.execute("SELECT * FROM sessions WHERE status = 'completed' ORDER BY ended_at DESC, id DESC LIMIT 1").fetchone()
-            return {"settings": settings(db), "sessions": rows,
+            chats = [dict(row) for row in db.execute("SELECT id,created_at,ended_at,status,requests FROM chat_sessions ORDER BY created_at DESC,id DESC")]
+            return {"settings": settings(db), "sessions": rows, "chats": chats,
                     "recent_completed": dict(recent) if recent else None}
 
     @app.put("/api/sessions/{session_id}")
@@ -214,11 +219,30 @@ def create_app(db_path=None):
         with store.connection(write=True) as db:
             require_epoch(db, history_epoch)
             db.execute("DELETE FROM sessions")  # Foreign keys cascade conversations/messages.
+            db.execute("DELETE FROM chat_sessions")  # Cascades mock-chat messages/request IDs, not daily quota.
             db.execute("UPDATE settings SET message_opt_in = 0, history_epoch = history_epoch + 1 WHERE id = 1")
             return settings(db)
 
+    install_chat(app, store, chat_provider)
+    install_voice(app, store, voice_provider, voice_limits)
     return app
 
 
-app = create_app()
+def runtime_chat_provider(env=None):
+    """Select live text only through two explicit server-side gates.
+
+    A key file alone never enables a provider call. Tests can continue to inject
+    a provider directly through create_app without changing process settings.
+    """
+    values = os.environ if env is None else env
+    mode = values.get("FIFER_TEXT_PROVIDER", "mock").strip().lower()
+    authorized = values.get("FIFER_TEXT_LIVE_AUTHORIZED", "").strip().lower()
+    if mode == "mock" and not authorized:
+        return None
+    if mode == "gemini" and authorized == "true":
+        return GeminiTextProvider(live_authorized=True)
+    raise RuntimeError("Text provider configuration is incomplete or not authorized.")
+
+
+app = create_app(chat_provider=runtime_chat_provider())
 

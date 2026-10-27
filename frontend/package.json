@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/grounding.test.js"
+    "test": "node --test src/*.test.js"
   },
   "dependencies": {
     "vue": "3.5.44"

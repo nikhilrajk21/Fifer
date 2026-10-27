@@ -1,5 +1,36 @@
 # Fifer — AI use and evidence record
 
+## Current Part 3.2 submission disclosure
+
+The later implementation pass corrected the intermittent setup-disconnect test boundary. Current results are 62/62 backend tests plus 25 consecutive focused passes, 49/49 frontend tests, and a successful production build. The earlier 60-pass/1-error result is retained as the failed approach that prompted the direct-ASGI teardown test; no live model call was involved.
+
+Codex acted as coding/documentation and verification assistant: revised sensory prompts/original classroom SVG, app-owned flow, SQLite/history/consent/deletion, bounded curated mock text/offline HTTPX adapter, mock voice/WebSocket lifecycle, tests, browser/SQLite inspection and this report. Exact Codex model identifier/effort is Not verified; it is not inferred from available-model lists. The original 3.1 disclosure remains below and the previous report is preserved in report-3-1.md.
+
+| Tool/model | Actual role and evidence boundary |
+| --- | --- |
+| Codex | Code/docs/test assistance; no independent clinical study or efficacy evidence |
+| gemini-2.5-flash | Approved text target; adapter is wired to FastAPI/Chat behind two server-only gates; only local mock and HTTPX mock-transport evidence, no actual Gemini response |
+| gemini-3.8-live | Approved separate Live target/instructor substitution relayed by owner; mock setup/events/synthetic tone only; real connector disabled/unimplemented |
+| Browser/Web Audio and Python SQLite/unittest, Node tests/Vite | Fictional acceptance and deterministic checks; not AI models or live provider evidence |
+| GPT image generation | Earlier 3.1 proposed flow image; no new image generation here; exact image model/version unknown |
+| Figma/Figma Make | Planned detailed screens; no actual artifact claimed |
+
+Verified acceptance: 61 backend and 49 frontend tests, build/pip/npm/whitespace checks; browser/SQLite main/alternate paths; mobile/keyboard smoke; separated timing 31.021 s active, 32.528 s setup, 5.941 s pause, 0.109 s Support. No paid/live observation, actual speech or hardware capture result exists. Voice browser tests used injected permission denial or synthetic oscillator media, not room audio. Only the previously captured fictional mobile screenshot was copied unchanged into submission evidence.
+
+Actual course submission/overview requirements were read from Canvas, summarized in [requirements](docs/assignment-3-submission-requirements.md), not exported wholesale. [Selected redacted prompts and revised/failed approach](prompts/assignment-3-2-evidence.md) connect requests → changes → tests → decisions. Setup/End cancellation was an inspection-led revision; the SQLite shell-quoting SyntaxError was an actual failed command corrected via stdin. Neither is represented as a failed live call. No keys, real distress disclosures, recordings or private third-party content are included.
+
+Current package is for student review, not approved/committed/submitted. The model-contribution requirement and publication/commit evidence remain unfinished. [Acceptance evidence](docs/verification/part-3-2-acceptance.md) distinguishes current observations from the historical checkpoint counts below; old no-database/unapproved-scope/uncommitted-milestone statements describe their earlier dates.
+
+## Offline Gemini adapter follow-up — 2026-10-26
+
+Codex inspected the approved text scope and implemented its HTTPX Gemini REST adapter, retaining the strict curated-output contract and existing FastAPI quota/consent/retention boundary. It later wired that adapter to normal application construction and mode-aware Chat labels through two explicit server-process gates. Official Google REST/key/access documentation was reviewed; no inference endpoint was called. Temporary-database tests use HTTPX MockTransport with fictional key fixtures only, covering missing key, success, invalid output, provider error, timeout, late reply, consent, runtime gating and safe refusal before live authorization. Current totals are 62 backend tests, 49 frontend tests and a successful build. Normal runtime remains the local mock. No real key was read or changed, dependency installed, provider call made, or commit/push performed. The provider model's account eligibility and real behavior remain unverified; see [adapter evidence and sources](docs/text-chat.md).
+
+## Mock text assistant checkpoint — 2026-10-26
+
+The user approved a bounded fictional app-help/skill chatbot, separate from Gemini Live voice, and an anonymous browser quota identity. Codex implemented local curated retrieval and a deterministic mock provider, backend quota reservations, optional context preview/sharing, cancellation, consent-aware saving, and history/Delete/Clear integration using existing dependencies. No Gemini/provider call, SDK installation, key read, credential change, or live-call switch was used. `gemini-2.5-flash` and 300 output tokens are the approved future request target/allowance, not evidence of a running model. Exact Codex model/effort is not independently asserted.
+
+The original classroom SVG and optional sensory text fields were created in the preceding grounding increment. Those fields stay out of storage and Chat context. Mock answers are reviewed app-content fixtures, not AI-generated runtime responses or clinical evidence. Final checks passed: 26 frontend tests, 28 temporary-database backend tests, Vite build, browser quota/reload/context/saving/review/Delete/Clear and backend-off Support checks. Normal history counts and existing opt-in were preserved. Live provider availability, generated output safety, token usage, costs, voice, full accessibility and cross-browser behavior remain unverified. See [text-chat evidence](docs/text-chat.md) for actual checks, revised approaches and limitations. Existing uncommitted grounding changes were preserved; no commit/push occurred.
+
 Part 3.1 record: 2026-10-15. Part 3.2 checkpoint: 2026-10-22.
 
 ## Part 3.2 implementation disclosure
@@ -52,3 +83,8 @@ Prepared prompt: [assignment-3-1-design.md](prompts/assignment-3-1-design.md). R
 ## Data and scope
 
 Use fictional scenarios only. Never include real distress disclosures or credentials in prompts, reports, screenshots, frontend code, or Git. No application code, dependencies, routes, components, tables, model integrations, or emergency contacts were created during this documentation revision. No commit or push was performed.
+## V2 voice disclosure — 2026-10-26
+
+Codex implemented the user-approved mock-only Gemini Live increment, local AudioWorklet/PCM handling, mock WebSocket relay, quota controls, tests and documentation. The target Live model is `gemini-3.8-live`; this is separate from text `gemini-2.5-flash`. No Gemini text or Live inference call was made, and no key was read or changed. No exact assistant model version/effort is asserted here.
+
+Official Google Live model/API/audio/session docs and public package/advisory metadata were consulted. The only added dependency was the approved `websockets==17.3`, installed project-locally after wheel/hash/binary/entry-point/advisory checks. A synthetic oscillator replaced the microphone only in a disposable browser verification tab; no hardware audio, transcript or recording was saved. The mock returns a synthetic tone, not model speech. The tab was closed to remove the test override. See [V2 evidence and failed/corrected checks](docs/voice.md). No commit/push was made. Real transport, account access, costs and speech behavior remain unverified.

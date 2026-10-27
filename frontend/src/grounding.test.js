@@ -1,11 +1,167 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { CHECKINS, SEQUENCE, STEPS, createExperience, transition } from './grounding.js'
+import { readFileSync } from 'node:fs'
+import * as Vue from 'vue'
+import { parse, compileScript } from 'vue/compiler-sfc'
+import { renderToString } from 'vue/server-renderer'
+import { CHECKINS, SEQUENCE, SEE_SCENE, STEPS, createExperience, transition } from './grounding.js'
 import { createSaveQueue, newSessionRecord, sessionSnapshot, sessionPayload, restoreExperience } from './persistence.js'
 import { request } from './api.js'
+import { anonymousBrowserId, createTextRequest, TEXT_TIMEOUT_MS } from './chat.js'
 
 const send = (state, type, now = state.lastAt + 100, value) => transition(state, { type, value }, now)
 const started = () => send(createExperience(0), 'BEGIN', 1000)
+
+test('anonymous quota identity survives reload and changes only when browser storage is cleared', () => {
+  const data = new Map()
+  const storage = { getItem:key=>data.get(key), setItem:(key,value)=>data.set(key,value) }
+  const first='11111111-1111-4111-8111-111111111111', second='22222222-2222-4222-8222-222222222222'
+  assert.equal(anonymousBrowserId(storage,()=>first),first)
+  assert.equal(anonymousBrowserId(storage,()=>second),first)
+  assert.deepEqual([...data.values()],[first]) // No questions or message bodies in browser storage.
+  data.clear()
+  assert.equal(anonymousBrowserId(storage,()=>second),second)
+  assert.throws(()=>anonymousBrowserId({ getItem(){ throw new Error('blocked') } }),/blocked/)
+})
+
+test('chat cancellation ignores a late mock reply after Stop, Support or navigation', async () => {
+  for (const reason of ['Stop','Support','navigation']) {
+    let release, calls=0
+    const transport=createTextRequest(async()=>{
+      calls++
+      return new Promise(resolve=>{ release=()=>resolve(new Response(JSON.stringify({answer:'late'}),{status:200})) })
+    })
+    const pending=transport.send('/api/chat/mock',{question:'Fictional app question'})
+    transport.cancel(reason)
+    release()
+    assert.deepEqual(await pending,{cancelled:true})
+    assert.equal(calls,1)
+  }
+})
+
+test('text requests time out without retries and normalize backend/quota failures', async () => {
+  assert.equal(TEXT_TIMEOUT_MS,15000)
+  let calls=0
+  const timeout=createTextRequest(async(_path,options)=>{
+    calls++
+    return new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('aborted','AbortError'))))
+  },5)
+  await assert.rejects(timeout.send('/api/chat/mock',{}),/No retry was made/)
+  assert.equal(calls,1)
+  const limited=createTextRequest(async()=>new Response(JSON.stringify({detail:'Quota reached'}),{status:429}))
+  await assert.rejects(limited.send('/api/chat/mock',{}),/Quota reached/)
+  const offline=createTextRequest(async()=>new Response('proxy unavailable',{status:502}))
+  await assert.rejects(offline.send('/api/chat/mock',{}),/No reply or save was confirmed/)
+})
+
+// Render the actual prompt SFC with the compiler/renderer shipped with approved Vue.
+// No browser emulation package, test-only component copy, or new dependency.
+const promptSource = readFileSync(new URL('./components/GroundingPrompt.vue', import.meta.url), 'utf8')
+const { descriptor } = parse(promptSource)
+const compiled = compileScript(descriptor, { id: 'grounding-prompt-test', inlineTemplate: true })
+const componentCode = compiled.content.replace(/import \{([^}]+)\} from ["']vue["'];?/g,
+  (_, bindings) => `const {${bindings.replace(/\bas\b/g, ':')}} = Vue;`)
+  .replace('export default', 'return')
+const GroundingPrompt = new Function('Vue', componentCode)(Vue)
+const renderPrompt = (step, response = '') => renderToString(Vue.createSSRApp(GroundingPrompt, { step, selected: [], response }))
+
+test('See examples correspond to five drawn objects in the single local original scene', () => {
+  assert.equal(STEPS.filter(step => step.image).length, 1)
+  assert.equal(STEPS[0].image, SEE_SCENE)
+  const picture = readFileSync(new URL(SEE_SCENE.src), 'utf8')
+  assert.deepEqual(STEPS[0].choices, SEE_SCENE.examples.map(item => item.label))
+  assert.deepEqual(SEE_SCENE.examples.map(item => item.id), ['window','clock','book','desk','plant'])
+  for (const { id, label } of SEE_SCENE.examples) {
+    const group = picture.match(new RegExp(`<g id="${id}" aria-label="${label}">([\\s\\S]*?)</g>`))
+    assert.ok(group, `${label} must have its own drawn object`)
+    assert.match(group[1], /<(rect|circle|path)\b/)
+    assert.ok(SEE_SCENE.alt.toLowerCase().includes(id))
+  }
+  assert.doesNotMatch(picture, /<script|<image|<foreignObject|\bhref=|url\(/i)
+  assert.match(SEE_SCENE.credit, /Original Fifer/)
+})
+
+test('actual See prompt renders descriptive local image and an optional labelled keyboard input', async () => {
+  const html = await renderPrompt(STEPS[0])
+  assert.match(html, /<img[^>]+alt="Illustrated classroom:/)
+  assert.match(html, /width="800" height="440"/)
+  assert.match(html, /<label[^>]+for="see-response"/)
+  assert.match(html, /<textarea[^>]+id="see-response"[^>]+aria-describedby="see-boundary see-privacy"/)
+  assert.doesNotMatch(html.match(/<textarea\b[^>]*>/)[0], /\brequired(?:=|\s|>)/)
+  assert.match(html, /Fifer does not sense your surroundings/)
+  assert.match(html, /not saved or sent/)
+  assert.match(html, /Optional examples visible in the picture/)
+  assert.match(promptSource, /textarea:focus-visible\{outline:3px solid/)
+})
+
+test('Feel/Hear offer optional imagined or present observations; sounds are plausible', () => {
+  assert.match(STEPS[1].hint, /imagined classroom or your present surroundings/)
+  assert.match(STEPS[1].hint, /do not need to touch anything/)
+  assert.match(STEPS[2].hint, /garden or open area/)
+  assert.deepEqual(STEPS[2].choices, ['Imagined birds calling','Imagined wind rustling leaves','Imagined footsteps on a path'])
+  assert.doesNotMatch(STEPS[2].choices.join(' '), /grass/i)
+})
+
+test('Smell/Taste render optional text, None and Not sure, without eating/drinking demands', async () => {
+  for (const step of STEPS.slice(3)) {
+    const html = await renderPrompt(step, 'Fictional sensory example')
+    assert.match(html, /<textarea/)
+    assert.match(html, /Fictional sensory example/)
+    assert.match(html, />None<\/button>/)
+    assert.match(html, />Not sure<\/button>/)
+    assert.match(step.hint, /or skip/)
+  }
+  assert.match(STEPS[3].hint, /no need to seek out or smell anything/)
+  assert.match(STEPS[4].hint, /no need to eat, drink, or try anything/)
+  assert.doesNotMatch(STEPS.map(step => step.title + step.hint + step.choices.join()).join(' '), /saliva/i)
+})
+
+test('typed sensory words are optional, retained across Pause/Resume, and cleared by Skip/Stop/Finish', () => {
+  let state = send(started(), 'WRITE', 1100, 'Fictional blue book')
+  assert.equal(state.responses.see, 'Fictional blue book')
+  const paused = send(state, 'PAUSE')
+  assert.equal(send(paused, 'WRITE', 1400, 'blocked').responses.see, 'Fictional blue book')
+  state = send(paused, 'RESUME')
+  assert.equal(state.responses.see, 'Fictional blue book')
+  state = send(state, 'SELECT', 1600, STEPS[0].choices[0])
+  const skipped = send(state, 'SKIP')
+  assert.equal(skipped.screen, 'feel')
+  assert.deepEqual(skipped.responses, {})
+  assert.deepEqual(skipped.selections, {})
+  for (const overlay of [null, 'pause', 'support']) {
+    const stopped = send({ ...state, overlay }, 'STOP')
+    assert.equal(stopped.screen, 'stopped')
+    assert.deepEqual(stopped.responses, {})
+    assert.equal(stopped.finished, false)
+  }
+  const support = send(state, 'SUPPORT')
+  assert.equal(support.overlay, 'support')
+  assert.equal(support.responses.see, 'Fictional blue book')
+  for (let index = 0; index < 6; index++) state = send(state, 'NEXT')
+  assert.deepEqual(send(state, 'FINISH').responses, {})
+})
+
+test('Skip works at every category with no quota and keeps the fixed order/counts', () => {
+  let state = started()
+  for (const screen of SEQUENCE) {
+    assert.equal(state.screen, screen)
+    if (screen !== 'complete') state = send(state, 'SKIP')
+  }
+  assert.equal(state.finished, false)
+  assert.equal(send(state, 'FINISH').finished, true)
+})
+
+test('typed words are escaped in rendered text and never enter session payloads or restoration', async () => {
+  let state = send(started(), 'WRITE', 1100, '<script>fictional-only</script>')
+  const html = await renderPrompt(STEPS[0], state.responses.see)
+  assert.match(html, /&lt;script&gt;fictional-only&lt;\/script&gt;/)
+  assert.doesNotMatch(html, /<script>/)
+  const record = sessionSnapshot(newSessionRecord('fictional-id','2026-10-26T12:00:00Z'), state, send(state,'NEXT'), 'NEXT')
+  const payload = sessionPayload(record, 0)
+  assert.equal('responses' in payload, false)
+  assert.equal(JSON.stringify(payload).includes('fictional-only'), false)
+  assert.deepEqual(restoreExperience(record, 2000).responses, {})
+})
 
 test('fixed five categories/counts and after-Feel check-in; zero selections always advance', () => {
   assert.deepEqual(STEPS.map(step => [step.id, step.count]), [['see',5],['feel',4],['hear',3],['smell',2],['taste',1]])

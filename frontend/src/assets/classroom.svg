@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="440" viewBox="0 0 800 440" role="img" aria-labelledby="scene-title scene-description">
+  <title id="scene-title">A quiet illustrated classroom</title>
+  <desc id="scene-description">An original Fifer illustration with a window, a round wall clock, a blue book on a desk, and a potted plant.</desc>
+  <!-- Original vector artwork created for Fifer; no external images, fonts, scripts, or resources. -->
+  <rect width="800" height="440" rx="18" fill="#f0edf5"/>
+  <path d="M0 338H800V440H0Z" fill="#d9e1e8"/>
+  <path d="M0 338H800" stroke="#a4b0bd" stroke-width="4"/>
+  <g id="window" aria-label="A window">
+    <title>A window</title>
+    <rect x="52" y="48" width="240" height="226" rx="5" fill="#dcebf3" stroke="#657e93" stroke-width="9"/>
+    <path d="M57 236L116 192L177 220L244 169L287 200V269H57Z" fill="#becfc9"/>
+    <path d="M172 50V272M55 160H290" stroke="#657e93" stroke-width="8"/>
+    <rect x="38" y="276" width="268" height="13" rx="4" fill="#8b9bac"/>
+  </g>
+  <g id="clock" aria-label="A wall clock">
+    <title>A wall clock</title>
+    <circle cx="485" cy="99" r="53" fill="#fbfcfe" stroke="#7b7193" stroke-width="8"/>
+    <path d="M485 56V63M485 135V142M442 99H449M521 99H528" stroke="#7b7193" stroke-width="4"/>
+    <path d="M485 70V99L510 113" fill="none" stroke="#46596c" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="485" cy="99" r="5" fill="#46596c"/>
+  </g>
+  <g id="desk" aria-label="A desk">
+    <title>A desk</title>
+    <rect x="333" y="269" width="298" height="25" rx="5" fill="#ae97ba" stroke="#786a8a" stroke-width="4"/>
+    <path d="M355 295V396M609 295V396" stroke="#65788c" stroke-width="14" stroke-linecap="round"/>
+    <path d="M362 317H602" stroke="#8b9aab" stroke-width="8"/>
+  </g>
+  <g id="book" aria-label="A blue book">
+    <title>A blue book</title>
+    <path d="M398 231H535V266H398Q386 250 398 231Z" fill="#6b91b1" stroke="#405e7b" stroke-width="4"/>
+    <path d="M402 242H533V257H402Q397 249 402 242Z" fill="#f9f6ed"/>
+    <path d="M414 231V240" stroke="#405e7b" stroke-width="4"/>
+  </g>
+  <g id="plant" aria-label="A potted plant">
+    <title>A potted plant</title>
+    <path d="M702 310V196" stroke="#527565" stroke-width="6"/>
+    <path d="M700 253Q647 245 660 211Q699 209 700 253ZM704 228Q748 220 749 184Q708 187 704 228ZM701 205Q671 185 684 160Q713 171 701 205ZM704 282Q746 281 754 247Q718 243 704 282Z" fill="#7f9f8b" stroke="#527565" stroke-width="3"/>
+    <path d="M663 310H741L728 386H677Z" fill="#b7a5c8" stroke="#7b7193" stroke-width="4"/>
+    <rect x="657" y="303" width="90" height="16" rx="4" fill="#c7b8d6" stroke="#7b7193" stroke-width="4"/>
+  </g>
+</svg>

@@ -1,4 +1,4 @@
-"""Project-local SQLite repository; no identity, sensory answers, or credentials."""
+"""Local coursework history and anonymous quota counters; no sensory answers or credentials."""
 from contextlib import contextmanager
 from pathlib import Path
 import sqlite3
@@ -44,6 +44,39 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 CREATE INDEX IF NOT EXISTS sessions_completed ON sessions(status, ended_at);
 CREATE INDEX IF NOT EXISTS messages_conversation ON messages(conversation_id, created_at);
+CREATE TABLE IF NOT EXISTS chat_sessions (
+    id TEXT PRIMARY KEY,
+    browser_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    ended_at TEXT,
+    status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','stopped')),
+    requests INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS chat_requests (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY,
+    session_id TEXT NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK(role IN ('user','assistant')),
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS chat_daily_usage (
+    browser_hash TEXT NOT NULL,
+    utc_day TEXT NOT NULL,
+    requests INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(browser_hash, utc_day)
+);
+INSERT OR IGNORE INTO schema_versions(version) VALUES (2);
+CREATE TABLE IF NOT EXISTS voice_daily_usage (
+    browser_hash TEXT NOT NULL,
+    utc_day TEXT NOT NULL,
+    sessions INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(browser_hash, utc_day)
+);
+INSERT OR IGNORE INTO schema_versions(version) VALUES (3);
 """
 
 

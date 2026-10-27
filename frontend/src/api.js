@@ -30,3 +30,10 @@ export const setMessageOptIn = (message_opt_in, history_epoch) => request('/api/
 export const deleteSession = (id, epoch) => request(`/api/sessions/${encodeURIComponent(id)}?history_epoch=${epoch}`, { method: 'DELETE' })
 export const clearHistory = epoch => request(`/api/history?history_epoch=${epoch}`, { method: 'DELETE' })
 
+export const chatConfig = browser => request(`/api/chat/config?browser_id=${encodeURIComponent(browser)}`)
+export const chatContext = () => request('/api/chat/context')
+export const beginChat = body => request('/api/chat/sessions', { method: 'POST', body: JSON.stringify(body) })
+export const reviewChat = id => request(`/api/chat/sessions/${encodeURIComponent(id)}`)
+export const stopChat = (id, body) => request(`/api/chat/sessions/${encodeURIComponent(id)}/stop`, { method: 'POST', body: JSON.stringify(body) })
+export const deleteChat = (id, epoch) => request(`/api/chat/sessions/${encodeURIComponent(id)}?history_epoch=${epoch}`, { method: 'DELETE' })
+
