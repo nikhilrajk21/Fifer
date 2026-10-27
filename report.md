@@ -4,11 +4,11 @@
 
 Repository: [nikhilrajk21/Fifer](https://github.com/nikhilrajk21/Fifer). Branch: `master`.
 
-Submitted-version commit: recorded in Git for this reviewed submission. Acceptance tested the working tree before commit. Baseline HEAD `a8edc32df96170bed09cd233cc3a5c2248e0adca` preceded these changes.
+Submitted-version commit: 07c711dff8839a41595fefc05c7797ef5dadd164. Acceptance tested the working tree before commit. Baseline HEAD `a8edc32df96170bed09cd233cc3a5c2248e0adca` preceded these changes.
 
 The [Part 3.1 report](report-3-1.md) is preserved byte-for-byte. The existing [3.1 milestone](https://github.com/nikhilrajk21/Fifer/commit/615ac73aaa933f8c3ce0004079f0179a133b35b1), [research](docs/research.md) and [flow diagram](docs/mockups/fifer-assignment-3-1-flow.png) remain historical evidence.
 
-The [Part 3.2 submission page](https://psu.instructure.com/courses/2484533/assignments/18506999) requires one report.md following [overview Sections 5–8](https://psu.instructure.com/courses/2484533/pages/assignment-3-overview-mental-health-skills-application). Requirements include a working skill, demonstrated model contribution, SQLite history, measured duration, independent support, failure/leave evidence and a redacted AI evidence log. Core application/storage checks pass and the approved text adapter is now wired behind server-only gates; an actual model response is still unobserved. New relative links resolve locally but need publication with an approved submitted-version commit before upload. See the [requirements checklist](docs/assignment-3-submission-requirements.md).
+The [Part 3.2 submission page](https://psu.instructure.com/courses/2484533/assignments/18506999) requires one report.md following [overview Sections 5–8](https://psu.instructure.com/courses/2484533/pages/assignment-3-overview-mental-health-skills-application). Requirements include a working skill, demonstrated model contribution, SQLite history, measured duration, independent support, failure/leave evidence and a redacted AI evidence log. Core application/storage checks pass and the approved text adapter is now wired behind server-only gates; an actual model response is still unobserved. New relative links were checked in the published repository. See the [requirements checklist](docs/assignment-3-submission-requirements.md).
 
 ## Application and research foundation
 
