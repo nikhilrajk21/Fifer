@@ -4,7 +4,7 @@
 
 Repository: [nikhilrajk21/Fifer](https://github.com/nikhilrajk21/Fifer). Branch: `master`.
 
-Submitted-version commit: 07c711dff8839a41595fefc05c7797ef5dadd164. Acceptance tested the working tree before commit. Baseline HEAD `a8edc32df96170bed09cd233cc3a5c2248e0adca` preceded these changes.
+Submitted-version commit: Latest pushed commit on master branch. Acceptance tested the working tree before commit. Baseline HEAD `a8edc32df96170bed09cd233cc3a5c2248e0adca` preceded these changes.
 
 The [Part 3.1 report](report-3-1.md) is preserved byte-for-byte. The existing [3.1 milestone](https://github.com/nikhilrajk21/Fifer/commit/615ac73aaa933f8c3ce0004079f0179a133b35b1), [research](docs/research.md) and [flow diagram](docs/mockups/fifer-assignment-3-1-flow.png) remain historical evidence.
 
@@ -98,6 +98,6 @@ Revised approach: setup originally awaited provider acknowledgement before readi
 
 The skill, persistence, independent Support, and mock-tested text/voice paths work in the exercised scope. The text adapter is wired behind explicit backend gates, but the attempted PowerShell live Gemini text test did not produce a response; no successful real model response was observed. Gemini Live voice remains mock-only. Full Part 3.2 acceptance is **incomplete** because an actual model contribution has not been demonstrated. No morning change is promised as submitted functionality.
 
-Also unresolved: submitted-version commit and publication of new evidence links; instructor confirmation of support wording; detailed Figma/Figma Make screens; hardware microphone/provider cleanup, full-duration voice, accessibility/contrast/screen-reader, physical-phone/cross-browser and clean-checkout verification. The credential scan is limited, not a full historical/forensic audit. Passing mocks do not prove clinical benefit or live-model safety.
+Also unresolved:Instructor confirmation of support wording; detailed Figma/Figma Make screens; hardware microphone/provider cleanup, full-duration voice, accessibility/contrast/screen-reader, physical-phone/cross-browser and clean-checkout verification. The credential scan is limited, not a full historical/forensic audit. Passing mocks do not prove clinical benefit or live-model safety.
 
 Part 3.3 requires at least fifteen fictional scenarios, three explicit behavior checks, a small relevant live selection, and demonstration/process-recording evidence. These are future work. The current submission limitation is the absent successful real model observation and unfinished detailed Figma/hardware/accessibility evidence. Run/recreation commands: [README.md](README.md).
