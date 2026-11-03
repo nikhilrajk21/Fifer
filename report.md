@@ -100,3 +100,6 @@ Evidence links: [Part 3.1 flow](docs/mockups/fifer-assignment-3-1-flow.png), [Pa
 
 ## Video Link 
 https://drive.google.com/file/d/13GzWGbF9SLct7EiMdANLJjf4vgvi6QB-/view?usp=sharing 
+
+## Clean-checkout verification
+A friend tested the project from a fresh clone and was able to follow the README to run it. They understood approximately 80–90% of the instructions independently and used ChatGPT for minimal clarification of a few complex or detailed terms. This suggests the setup instructions were usable, though some terminology could be simplified.
