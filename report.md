@@ -89,6 +89,14 @@ Codex assisted with code, tests, documentation, and organizing this evidence. Ex
 
 Evidence links: [Part 3.1 flow](docs/mockups/fifer-assignment-3-1-flow.png), [Part 3.2 screenshot](docs/verification/part-3-2-acceptance/mobile-see.png), [design](docs/design.md), [safety](docs/safety.md), [text adapter notes](docs/text-chat.md), [voice mock evidence](docs/voice.md), [course requirements summary](docs/assignment-3-submission-requirements.md), and [evaluation plan](docs/assignment-3-3-evaluation-plan.md). These are repository-relative links and resolve within the pushed repository, subject to repository access.
 
-## Remaining before submission
+## Remaining 
 
-Manually retest S11 Pause/Resume after the new snapshot fix; provide the recorded video link and confirm its contents cover both the finished-app demonstration and failure/evidence/decision process; complete detailed Figma/Figma Make screens if required; verify instructor approval of the static Support wording; run a clean-checkout recreation when dependency-install approval is available; and submit the report/artifacts through the course system. The clean-checkout instructions were reviewed but not executed because recreating the environment requires dependency installation. The successful live Gemini text sample is limited evidence; output structure and matching source ID do not prove semantic grounding.
+- Investigate and retest the intermittent S11 Pause/Resume behavior.
+- Complete the remaining unverified browser checks: M04, M12, M18, I2, and keyboard-only use.
+- Verify that another person can run a clean checkout by following the README.
+- Confirm the recording covers the finished-app demonstration, a failure, the evidence used to understand it, the resulting decision, and an explanation of relevant generated code.
+- Finish the detailed Figma screens and verify the instructor’s support wording, if those are required.
+- Review the final changes, then commit and push the Assignment 3.3 work.
+
+## Video Link 
+https://drive.google.com/file/d/13GzWGbF9SLct7EiMdANLJjf4vgvi6QB-/view?usp=sharing 
