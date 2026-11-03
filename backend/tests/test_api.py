@@ -78,6 +78,23 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn('selections', recent)
         self.assertEqual(recent['active_ms'], 6000)
 
+    async def test_completed_session_review_returns_saved_fields_without_enabling_resume(self):
+        completed = await self.completed()
+        response = await self.client.get(f"/api/sessions/{self.id}")
+        self.assertEqual(response.status_code, 200)
+        detail = response.json()
+        self.assertEqual(detail['session']['id'], self.id)
+        self.assertEqual(detail['session']['status'], 'completed')
+        self.assertEqual(detail['session']['current_step'], 'complete')
+        self.assertEqual(detail['session']['skill'], '5-4-3-2-1')
+        self.assertEqual(detail['session']['active_ms'], completed['active_ms'])
+        self.assertIsNone(detail['session']['checkin'])
+        self.assertEqual(detail['messages'], [])
+        changed = {**self.value, 'revision': completed['revision'] + 1,
+                   'checkin': 'A little better', 'event': 'finish'}
+        update = await self.client.put(f'/api/sessions/{self.id}', json=changed)
+        self.assertEqual(update.status_code, 409)
+
     async def test_pause_resume_separate_durations_and_stopped_never_completed(self):
         await self.save()
         await self.save(status='paused', event='pause', revision=2, active_ms=500)

@@ -1,6 +1,14 @@
 # Fifer — AI use and evidence record
 
-## Current Part 3.2 submission disclosure
+## Assignment 3.3 evidence update — 2026-11-02
+
+Codex assisted with the approved concise-paraphrase response contract, bounded diagnostic categories/logging, mock tests, the Pause/Resume state snapshot, history review UI, and evaluation/report curation. Exact Codex model identifier and effort are not available and are not asserted. The owner supplied AI Studio quota screenshots for project “fifer” and confirmed the configured key is local; this update did not inspect `.env` or the key. The default application mode remains Mock. A pre-fix authorized fictional request returned HTTP 200 but failed output validation (`invalid_output`), so Chat showed the fixed fallback. After the parser fix, the owner reports exactly one later generated Gemini text answer. The answer and visible source title are not retained, so semantic grounding cannot be independently reviewed. No retry or new provider call was made for this update.
+
+Current checks for this revision: frontend 58/58 tests passed; production build passed with 28 modules; Python syntax compilation and `git diff --check` passed; local report links resolve; 12 synchronous Gemini diagnostic/response-contract tests passed. The full backend unittest suite was stopped at the 30-second bound with no test results; Windows async setup remains unverified. Mock transports and temporary databases are not live-provider evidence. Historical live events include the earlier `upstream_model_unavailable` fallback, a no-HTTP-status metadata check, the pre-fix `invalid_output` response, and the later owner-reported single generated response after the parser fix. These are distinct observations and do not establish semantic grounding. No provider call or package install occurred in this update. See [text-chat evidence](docs/text-chat.md), [the 3.3 evaluation record](docs/assignment-3-3-evaluation-plan.md) and [curated redacted evidence log](prompts/assignment-3-3-evidence.md).
+
+The evaluation exposed an important boundary: schema, size, and matching-source-ID checks reject malformed output but cannot prove the paraphrase is semantically supported by the cited source. A structurally valid unsupported mock output passes. No keyword filter is described as comprehensive validation. Owner-reported S03/S04, S11 refresh, and S13 results are recorded in the evaluation plan; S11 same-tab Pause/Resume remains Partial pending post-fix manual retest. The owner says a video was recorded, but its link is unavailable and its coverage of both required sections cannot be verified. `**Video link:**` remains blank for the owner to fill.
+
+## Historical Part 3.2 submission disclosure (recorded at that milestone)
 
 The later implementation pass corrected the intermittent setup-disconnect test boundary. Current results are 62/62 backend tests plus 25 consecutive focused passes, 49/49 frontend tests, and a successful production build. The earlier 60-pass/1-error result is retained as the failed approach that prompted the direct-ASGI teardown test; no live model call was involved.
 
@@ -9,7 +17,7 @@ Codex acted as coding/documentation and verification assistant: revised sensory 
 | Tool/model | Actual role and evidence boundary |
 | --- | --- |
 | Codex | Code/docs/test assistance; no independent clinical study or efficacy evidence |
-| gemini-2.5-flash | Approved text target; adapter is wired to FastAPI/Chat behind two server-only gates; only local mock and HTTPX mock-transport evidence, no actual Gemini response |
+| gemini-3.5-flash-lite | Current approved text target; adapter is wired to FastAPI/Chat behind two server-only gates; the single authorized request returned HTTP 200 but output validation failed, producing the fixed fallback |
 | gemini-3.8-live | Approved separate Live target/instructor substitution relayed by owner; mock setup/events/synthetic tone only; real connector disabled/unimplemented |
 | Browser/Web Audio and Python SQLite/unittest, Node tests/Vite | Fictional acceptance and deterministic checks; not AI models or live provider evidence |
 | GPT image generation | Earlier 3.1 proposed flow image; no new image generation here; exact image model/version unknown |

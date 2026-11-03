@@ -237,7 +237,7 @@ def runtime_chat_provider(env=None):
     values = os.environ if env is None else env
     mode = values.get("FIFER_TEXT_PROVIDER", "mock").strip().lower()
     authorized = values.get("FIFER_TEXT_LIVE_AUTHORIZED", "").strip().lower()
-    if mode == "mock" and not authorized:
+    if mode == "mock" and authorized in ("", "false"):
         return None
     if mode == "gemini" and authorized == "true":
         return GeminiTextProvider(live_authorized=True)

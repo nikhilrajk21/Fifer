@@ -30,10 +30,31 @@ const seconds = value => (value / 1000).toFixed(1) + ' s'
         <p><strong>5–4–3–2–1 · {{ record.status }}</strong></p>
         <p>{{ time(record.started_at) }} · {{ record.current_step }}</p>
         <div class="history-actions">
-          <button class="text-button" :disabled="busy" @click="$emit('review', record.id)">Review session</button>
+          <button class="text-button" :disabled="busy" :aria-expanded="detail?.session?.id === record.id"
+                  :aria-controls="detail?.session?.id === record.id ? `session-review-${record.id}` : undefined"
+                  @click="$emit('review', record.id)">Review session</button>
           <button v-if="['active','paused'].includes(record.status)" class="text-button" :disabled="busy || pending > 0" @click="$emit('resume', record)">Resume saved activity</button>
           <button class="text-button" :disabled="busy || pending > 0" @click="$emit('delete', record.id)">Delete session</button>
         </div>
+        <section v-if="detail?.session?.id === record.id" :id="`session-review-${record.id}`"
+                 class="history-detail" role="region" aria-live="polite" :aria-label="`Review of ${record.status} grounding session`">
+          <h2>Session review</h2>
+          <dl>
+            <dt>Fictional ID</dt><dd>{{ detail.session.id }}</dd>
+            <dt>Skill / status</dt><dd>{{ detail.session.skill }} / {{ detail.session.status }}</dd>
+            <dt>Start</dt><dd>{{ time(detail.session.started_at) }}</dd>
+            <dt>End</dt><dd>{{ time(detail.session.ended_at) }}</dd>
+            <dt>Saved step</dt><dd>{{ detail.session.current_step }}</dd>
+            <dt>Optional check-in</dt><dd>{{ detail.session.checkin || 'Not answered' }}</dd>
+            <dt>Setup / active</dt><dd>{{ seconds(detail.session.setup_ms) }} / {{ seconds(detail.session.active_ms) }}</dd>
+            <dt>Pause / support</dt><dd>{{ seconds(detail.session.paused_ms) }} / {{ seconds(detail.session.support_ms) }}</dd>
+          </dl>
+          <h3>Opted-in fictional messages</h3>
+          <p v-if="!detail.messages.length">No saved messages.</p>
+          <ol class="message-list"><li v-for="message in detail.messages" :key="message.id">
+            <strong>{{ message.role }}</strong> · {{ time(message.created_at) }}<p>{{ message.content }}</p>
+          </li></ol>
+        </section>
       </li>
     </ul>
     <ul v-if="history.chats?.length" class="history-list" aria-label="Mock chat history">
@@ -47,24 +68,6 @@ const seconds = value => (value / 1000).toFixed(1) + ' s'
       <h2>Mock chat details</h2><p>{{ time(detail.chat_session.created_at) }} · {{ detail.chat_session.status }} · {{ detail.chat_session.requests }} attempts</p>
       <p v-if="!detail.messages.length">No saved messages. Saving may have been OFF.</p>
       <ol class="message-list"><li v-for="(message,index) in detail.messages" :key="index"><strong>{{ message.role }}</strong> · {{ time(message.created_at) }}<p>{{ message.content }}</p></li></ol>
-    </section>
-    <section v-if="detail?.session" class="history-detail" aria-label="Reviewed session">
-      <h2>Session details</h2>
-      <dl>
-        <dt>Fictional ID</dt><dd>{{ detail.session.id }}</dd>
-        <dt>Skill / status</dt><dd>{{ detail.session.skill }} / {{ detail.session.status }}</dd>
-        <dt>Start</dt><dd>{{ time(detail.session.started_at) }}</dd>
-        <dt>End</dt><dd>{{ time(detail.session.ended_at) }}</dd>
-        <dt>Saved step</dt><dd>{{ detail.session.current_step }}</dd>
-        <dt>Optional check-in</dt><dd>{{ detail.session.checkin || 'Not answered' }}</dd>
-        <dt>Setup / active</dt><dd>{{ seconds(detail.session.setup_ms) }} / {{ seconds(detail.session.active_ms) }}</dd>
-        <dt>Pause / support</dt><dd>{{ seconds(detail.session.paused_ms) }} / {{ seconds(detail.session.support_ms) }}</dd>
-      </dl>
-      <h3>Opted-in fictional messages</h3>
-      <p v-if="!detail.messages.length">No saved messages.</p>
-      <ol class="message-list"><li v-for="message in detail.messages" :key="message.id">
-        <strong>{{ message.role }}</strong> · {{ time(message.created_at) }}<p>{{ message.content }}</p>
-      </li></ol>
     </section>
   </template>
   <button class="button secondary wide" @click="$emit('close')">Return to choices</button>

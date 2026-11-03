@@ -125,7 +125,7 @@ function discardUnsaved() {
 }
 
 function resumeSaved(record) {
-  if (writer.pending) return
+  if (writer.pending || !['active', 'paused'].includes(record?.status)) return
   currentRecord = { ...record }
   experience.value = restoreExperience(record, performance.now())
   historyOpen.value = false
@@ -197,9 +197,13 @@ watch([() => experience.value.screen, () => historyOpen.value, () => chatOpen.va
   await nextTick()
   document.getElementById('activity-heading')?.focus()
 })
-watch(() => experience.value.overlay, async value => {
+watch(() => experience.value.overlay, async (value, previous) => {
   await nextTick()
   if (value) document.querySelector('[data-dialog-heading]')?.focus()
+  else if (previous === 'pause' && experience.value.started) {
+    overlayReturnFocus = null
+    document.getElementById('activity-heading')?.focus()
+  }
   else if (overlayReturnFocus?.isConnected && experience.value.screen !== 'stopped') overlayReturnFocus.focus()
   else heading.value?.focus()
 })

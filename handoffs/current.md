@@ -1,5 +1,17 @@
 # Fifer — current handoff
 
+## Assignment 3.3 update — 2026-11-02
+
+The owner reports one successful Gemini text answer after the `thoughtSignature` parser fix; the response and displayed source title are not retained, so no independent semantic/source review is possible. No new provider call was made in this update. S03 context OFF, S04 context ON, S11 refresh recovery, and S13 completed review are owner-reported Pass. S11 same-tab Pause/Resume was intermittent before this update; the frontend now snapshots/restores the exact in-memory step, selections, typed response, and check-in on Resume, while persisted snapshots still exclude sensory narratives and Stop clears transient state. Automated Pause/Resume tests pass, but S11 remains Partial pending manual post-fix retest. The owner says a video was recorded, but the link is unavailable and its coverage of both finished-app demo and failure/evidence/decision process cannot be verified; `**Video link:**` remains blank.
+
+Current checks: frontend 58/58 pass; build passes with 28 modules; Python syntax compilation and 12 synchronous Gemini diagnostic/response-contract tests pass. The full backend suite exceeded a 30-second bound during Windows async setup and is not verified. No dependency, provider call, mode/settings change, database write, or secret-file read was made. See [Assignment 3.3 evaluation](../docs/assignment-3-3-evaluation-plan.md) and [report](../report.md).
+
+## Current Gemini text model follow-up — 2026-11-02
+
+Historical checkpoint text below recorded the initial pre-fix HTTP-200 `invalid_output` fallback and Mock restoration. It is superseded only by the later owner-reported successful response noted above; details of the successful answer/source were not retained.
+
+The current text target is `gemini-3.5-flash-lite`, changed from the earlier `gemini-2.5-flash` target after the owner supplied same-project AI Studio Free Tier/rate-limit screenshots and confirmed the replacement key is stored in ignored `backend/.env`. The existing loader returned configured=true; the file remains ignored and untracked. The screenshots show the project quota listing, not successful authentication or generation. Exactly one authorized request (“How do I pause Fifer?”) was made after verification of Gemini mode and both OFF consent settings. It returned upstream HTTP 200 but `invalid_output`; the UI showed the fixed fallback with no generated answer or curated source. No retry was made. Default mode is now restored to Mock and verified both through FastAPI config and the refreshed Chat screen. This authorization did not extend to Live voice or another request. The historical sections below preserve prior checkpoint evidence and are superseded only where this update says so.
+
 ## Current documentation/submission review checkpoint
 
 Resolved test-boundary result: the documentation-time full suite's 60-pass/1-CancelledError setup-disconnect result prompted a direct-ASGI teardown test. The revised full backend suite passes 62/62; the focused disconnect/cleanup/restart test then passed 25 consecutive runs. Frontend 49/49, build, pip and npm checks pass. The direct test verifies the mock upstream closes and the browser reservation releases; it does not verify real Gemini Live cleanup. The existing Starlette TestClient/httpx deprecation warning remains, and no new dependency was added.
@@ -26,7 +38,7 @@ Final checks: 42 frontend tests, 56 backend tests, production build and git diff
 
 ## Latest V2 mock-voice checkpoint — 2026-10-26
 
-The latest user approval authorizes the proposed Gemini Live substitution and mock-only increment, including `gemini-3.8-live`, limits and conditional local `websockets==17.3` installation after CHECK. These decisions supersede historical voice-unimplemented/pending-scope statements below. Text remains separate (`gemini-2.5-flash` target). No real text/Live provider call, commit or push is authorized or performed.
+The latest user approval authorizes the proposed Gemini Live substitution and mock-only increment, including `gemini-3.8-live`, limits and conditional local `websockets==17.3` installation after CHECK. These decisions supersede historical voice-unimplemented/pending-scope statements below. Text remains separate, with its current target updated to `gemini-3.5-flash-lite` after the subsequent model approval. Gemini Live is still mock-only.
 
 Implemented optional Voice outside grounding; browser AudioWorklet PCM capture/playback; FastAPI `/api/voice` with local mock event stream, fixed backend setup/instructions, independent deadlines/quotas and cleanup. Mock output is a labelled synthetic tone, not a spoken answer. `GeminiLiveProvider` fails before any key/network access; the real transport remains deliberately unimplemented. No hardware microphone was used in verification and no audio/transcripts were stored. Existing `backend/.env` was not read or changed.
 

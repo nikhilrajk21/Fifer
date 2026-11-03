@@ -1,7 +1,7 @@
 // Application-owned content and transitions. No model, storage, network, or timers.
 export const SEE_SCENE = Object.freeze({
   src: new URL('./assets/classroom.svg', import.meta.url).href,
-  alt: 'Illustrated classroom: a large window on the left, a round wall clock above a desk, a blue book on the desk, and a leafy plant in a pot on the right.',
+  alt: 'Illustrated classroom: a crossbarred window on the left, a round wall clock with clear tick marks above a desk with a visible drawer and legs, an open blue-covered book on the desk, and a leafy plant in a pot on the right.',
   credit: 'Original Fifer classroom illustration, created for this project. No external image source.',
   examples: Object.freeze([
     { id: 'window', label: 'A window' },
@@ -38,6 +38,8 @@ const ACTIVITY = new Set(SEQUENCE)
 export function createExperience(now = 0, recentCompleted = false) {
   return {
     screen: 'start', overlay: null, selections: {}, responses: {}, checkin: null,
+    // A deep, tab-only copy made at Pause; persistence intentionally omits it.
+    pauseSnapshot: null,
     started: false, finished: false, recentCompleted,
     setupStartedAt: now, lastAt: now, setupMs: 0,
     activeMs: 0, pausedMs: 0, supportMs: 0,
@@ -57,13 +59,24 @@ export function transition(state, action, now = 0) {
   let next = settle(state, now)
   if (action.type === 'SUPPORT') return { ...next, overlay: 'support' }
   if (action.type === 'STOP') {
-    return { ...next, screen: 'stopped', overlay: null, started: false, finished: false, selections: {}, responses: {}, checkin: null }
+    return { ...next, screen: 'stopped', overlay: null, started: false, finished: false,
+      selections: {}, responses: {}, checkin: null, pauseSnapshot: null }
   }
   if (action.type === 'CLOSE_SUPPORT' && state.overlay === 'support') {
     return { ...next, overlay: state.started && !state.finished ? 'pause' : null }
   }
-  if (action.type === 'RESUME' && state.overlay === 'pause') return { ...next, overlay: null }
-  if (action.type === 'PAUSE' && state.started && !state.finished && !state.overlay) return { ...next, overlay: 'pause' }
+  if (action.type === 'RESUME' && state.overlay === 'pause') {
+    const saved = state.pauseSnapshot
+    return { ...next, ...(saved || {}), overlay: null, pauseSnapshot: null }
+  }
+  if (action.type === 'PAUSE' && state.started && !state.finished && !state.overlay) {
+    return { ...next, overlay: 'pause', pauseSnapshot: {
+      screen: state.screen,
+      selections: Object.fromEntries(Object.entries(state.selections).map(([key, values]) => [key, [...values]])),
+      responses: { ...state.responses },
+      checkin: state.checkin,
+    } }
+  }
   if (state.overlay) return next
 
   if (action.type === 'HOME') return createExperience(now, state.recentCompleted)

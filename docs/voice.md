@@ -30,7 +30,7 @@ Changed in this follow-up: `frontend/src/components/ChatPanel.vue`, `frontend/sr
 
 ## Authorization and boundary
 
-The user approved the instructor's Gemini Live substitution, target `gemini-3.8-live`, the limits below, and mock-only implementation. Text Chat remains separate with `gemini-2.5-flash` as its target. No real text or Live call is authorized. No key was read or changed for this increment. The existing authentication family is Gemini Developer API/AI Studio (`GEMINI_API_KEY`, ignored `backend/.env`), not Vertex. Key validity, permissions, model access and billing remain unverified.
+The user approved the instructor's Gemini Live substitution, target `gemini-3.8-live`, the limits below, and mock-only implementation. Text Chat remains separate; its target was subsequently updated to `gemini-3.5-flash-lite` on 2026-11-02. The single separately authorized text request does not authorize Live calls. The existing authentication family is Gemini Developer API/AI Studio (`GEMINI_API_KEY`, ignored `backend/.env`), not Vertex.
 
 `GeminiLiveProvider.connect()` deliberately refuses before any key read or network connection. V2 implements the wire contract against `MockWire`; it does not implement or activate a real upstream transport. Changing that boundary requires separate approval and verification, not an environment toggle. The local mock discards microphone frames and returns a quiet 200 ms synthetic tone. It cannot understand, transcribe or answer speech, and UI labels say so.
 

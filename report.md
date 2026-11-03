@@ -1,103 +1,94 @@
-# Fifer — Assignment 3.2
+# Fifer — Assignment 3.3
 
-## Repository and submission status
+## Repository and version
 
-Repository: [nikhilrajk21/Fifer](https://github.com/nikhilrajk21/Fifer). Branch: `master`.
+Repository: [nikhilrajk21/Fifer](https://github.com/nikhilrajk21/Fifer), branch master. The previous commit `07c711dff8839a41595fefc05c7797ef5dadd164` is the Part 3.2 baseline. The exact Assignment 3.3 commit ID is not embedded in this report; it will be available in Git history after the reviewed package is committed. The former root report is preserved as [report-3-2.md](report-3-2.md), and [report-3-1.md](report-3-1.md) remains the Part 3.1 record. No Canvas submission is claimed.
 
-Submitted-version commit: recorded in Git for this reviewed submission. Acceptance tested the working tree before commit. Baseline HEAD `a8edc32df96170bed09cd233cc3a5c2248e0adca` preceded these changes.
+The current app remains a local Vue → FastAPI → SQLite coursework prototype, independent of Expedia Lite. It is not therapy or a diagnostic tool. No clinical effectiveness or human monitoring is claimed.
 
-The [Part 3.1 report](report-3-1.md) is preserved byte-for-byte. The existing [3.1 milestone](https://github.com/nikhilrajk21/Fifer/commit/615ac73aaa933f8c3ce0004079f0179a133b35b1), [research](docs/research.md) and [flow diagram](docs/mockups/fifer-assignment-3-1-flow.png) remain historical evidence.
+## Application and generated code
 
-The [Part 3.2 submission page](https://psu.instructure.com/courses/2484533/assignments/18506999) requires one report.md following [overview Sections 5–8](https://psu.instructure.com/courses/2484533/pages/assignment-3-overview-mental-health-skills-application). Requirements include a working skill, demonstrated model contribution, SQLite history, measured duration, independent support, failure/leave evidence and a redacted AI evidence log. Core application/storage checks pass and the approved text adapter is now wired behind server-only gates; an actual model response is still unobserved. New relative links resolve locally but need publication with an approved submitted-version commit before upload. See the [requirements checklist](docs/assignment-3-submission-requirements.md).
+The app-owned sequence remains Start choice → See 5 → Feel 4 → optional check-in → Hear 3 → Smell 2 → Taste 1 → explicit Finish. Each step is separate; sensory answers are optional/skippable and unscored. The bundled classroom image and See examples name the same five visible objects; the app does not sense the user's surroundings. Feel asks only for comfortable observations without requiring touch. Hear offers plausible sounds. Smell and Taste allow none/not sure/skip without requiring smelling, eating, drinking, or disclosure. Pause/Resume, immediate Stop/Leave, and static Emergency Support remain outside model control.
 
-## Application and research foundation
+Instructor sensory feedback, as relayed by the project owner, led to the concrete scene, matched See examples and alt text, more plausible Hear examples, and lower-demand tactile/smell/taste wording. This is a report of the owner's direction, not an independently verified instructor evaluation.
+The later checks did not change the 3.1 sequence; they made its implementation criteria more concrete: See examples must match the bundled scene, sounds must be plausible, answers must remain optional, and Finish/Stop/Support behavior must remain explicit and application-controlled. A mocked but structurally valid unsupported paraphrase with the correct source ID also changed the evidence decision: citations are reported as structural checks only, and semantic grounding remains unverified. No participant or usability results were supplied, so no preference-based redesign is claimed.
 
-Fifer is a local Vue/JavaScript → FastAPI/Python → SQLite coursework skills prototype for a fictional student, for example after a group-assignment disagreement. It is not a therapist, diagnostic service or monitored support tool; no clinical effectiveness is claimed. No Expedia Lite files or travel functionality were copied. Only stack separation, persistence concepts and verification practices were reused conceptually.
+Codex-assisted code uses a curated single-source retrieval path for the optional text assistant. The approved Gemini adapter can return a short plain-language paraphrase attributed to the one retrieved Fifer source. Only if context sharing is explicitly enabled may it receive the completed-session count, most recent completed skill, and optional check-in already supplied by the app. No profile is inferred. Sensory narratives, audio, transcripts, arbitrary files, web results, and private records are excluded. Mock tests exercise this contract; a structurally valid answer and matching source ID do not prove semantic grounding.
 
-The supplied course material is the primary research source. R1 informs short pacing; R2/D4 independent persistent Support; R3 explicit Resume and immediate Stop; R4 optional input; D1/D2 atomic screens without distress detection; D3 low-effort responses; D5 optional completed-skill suggestions; D6 dusty blue/lavender and nonjudgmental wording. The complete [R1–R4/D1–D6 mapping](docs/research.md) is preserved. Choice reduces coercion but adds decisions; low input reduces effort but limits history depth; calm visuals still need visible safety controls. Research informs design, not clinical benefit.
+## Evaluation: fictional scenarios
 
-## Instructor sensory feedback and implemented flow
+The full [Assignment 3.3 evaluation plan](docs/assignment-3-3-evaluation-plan.md) records expectations, outcomes, evidence, four cross-case checks, and the gated live-test card. Automated mock/local results are distinguished from live-model and owner-supplied manual observations below.
 
-The owner relayed instructor sensory feedback through the revision request: tie See to an actual picture, offer comfortable tactile observations, use plausible sounds, and allow none/not sure/skip for smell and taste. This attribution comes from the owner's request; no independent instructor evaluation, quotation or mark is claimed. [Selected prompt excerpts](prompts/assignment-3-2-evidence.md) link the request to changes and tests.
+| ID | Fictional scenario | Expected | Observed result and evidence type |
+| --- | --- | --- | --- |
+| M01 | Ask how to pause in default mode | Label mock; cite curated controls content; no provider request | Pass — backend/UI mock tests; not browser or live evidence |
+| M02 | Ask which grounding skill is available | Cite skill content; app sequence remains fixed | Pass — retrieval and frontend order/count tests |
+| M03 | Ask unrelated trivia | Fixed out-of-scope response; no provider call or saved message | Pass — mocked/API test |
+| M04 | Ask Chat to skip/reorder a running step | Chat cannot change app-owned flow | Pass — browser/mock-only flow exposed Skip, Continue, Pause, Stop/Leave and Support, with no Chat entry point during the exercise; See → Feel advanced by Skip. Later backend-off exercise reached explicit Finish. No provider call occurred. |
+| M05 | Open Chat without enabling context sharing | Context OFF; send no summary fields | Pass — API and mocked request-payload tests |
+| M06 | Explicitly share a completed-session summary | Share only approved supplied fields | Pass — HTTPX mock and temporary-session tests |
+| M07 | Turn sharing OFF after enabling it | Next request omits summary; saving consent stays separate | Pass — OFF/ON/OFF mock/API tests |
+| M08 | Send with message saving OFF | Do not persist question/answer | Pass — mocked provider and temporary database tests |
+| M09 | Opt in, review, opt out, then delete | Save only with opt-in; deletion removes selected messages | Pass — temporary database API test |
+| M10 | Finish one session and stop another | Only explicitly finished skill becomes recent suggestion | Pass — API/state tests; no forced recommendation |
+| M11 | Stop while mock reply is pending | Ignore late result; no save; keep flow/Support usable | Pass — backend and frontend cancellation tests |
+| M12 | Open Support while a request is pending/backend unavailable | Static Support opens independently | Pass — static Support opened during a delayed mock response, stayed open after the response window, and showed no late Chat result; backend-off paths were separately observed. |
+| M13 | Mock upstream 404 with private body marker | Safe fallback and generic not-found category; hide body | Pass — HTTPX mock and log-sanitization tests |
+| M14 | Mock auth, permission, quota, request, server, and other HTTP statuses | Fixed allowlisted classification; no retry/body leak | Pass — HTTPX mock status-category tests |
+| M15 | Mock connection error and timeout | Fixed safe reason; no retry or exception text | Pass — HTTPX mock tests |
+| M16 | Mock malformed, mismatched-source, extra, oversized, or incomplete output | Reject and fall back safely | Pass for structural validation — tests reject these forms; semantic entailment remains unproven |
+| M17 | Stop/Leave before Finish | Persist stopped, not completed; do not update recent skill | Pass — API/state and frontend tests |
+| M18 | Open Support from start, step, paused, error, completion with backend down | Static panel available in every state | Pass — browser inspection with FastAPI stopped opened static Support from Start, active See with connection/unsaved warning, Pause, Chat setup error and completion; same copy appeared without a backend response. |
+| M19 | Use Chat and controls with keyboard only | Operable controls and visible focus; mode label clear | Pass — browser keyboard-only path used Tab/Shift+Tab, Space and Enter through Chat, fictional question, Stop, Support/Return, Skip and Stop/Leave; visible focus appeared and Stop was immediate. |
+| M20 | Reach text-chat quotas through failures, new chats, and reloads | 5/session and 20/browser/UTC-day; no auto retry | Pass — API/temp DB quota and no-retry tests |
 
-The [original bundled classroom SVG](frontend/src/assets/classroom.svg) shows a window, wall clock, blue book, desk and potted plant. All five See examples match those objects; alt text describes them. Fifer explicitly says it does not sense the user's surroundings.
+## Cross-case checks
 
-Start choice → See 5 → Feel 4 → optional check-in → Hear 3 → Smell 2 → Taste 1 → completion screen → explicit **Finish activity**. Vue owns the sequence/counts. Each category supports optional text/examples and empty Continue/Skip without quotas or scoring. Feel requires no touching. Hear offers imagined birds, rustling leaves and footsteps. Smell/Taste permit None/Not sure without scent-finding, eating or drinking. The after-Feel check-in includes “A little better” and Skip. See [design](docs/design.md).
+| Check | Expected across cases | Observed |
+| --- | --- | --- |
+| I1 — App-owned skill | Chat replies, errors, and late replies never alter the fixed grounding flow | Pass in automated seams; no integrated live-model/browser run |
+| I2 — User control and independent Support | Stop stays immediate; Support stays static and available through backend/provider failure | Pass for the exercised browser/mock states — delayed mock output was ignored after Stop; keyboard Stop/Leave was immediate; static Support worked while a mock was pending and with FastAPI stopped in the observed states. This is not live-provider evidence. |
+| I3 — Consent and data minimization | Context share and message saving remain separate; only allowlisted summary fields shared; sensory/audio/transcript data excluded | Pass in automated payload, temporary DB, consent, and deletion checks |
+| I4 — Completion-derived suggestion | Only completed sessions affect recent-skill suggestion | Pass in automated API/frontend checks; stopped session excluded |
 
-The [3.1 diagram](docs/mockups/fifer-assignment-3-1-flow.png) is a proposed flow, not a detailed Figma screen mockup. Detailed Figma/Figma Make artifact: **Not yet available**.
+Owner-reported manual retests (2026-11-02; not independently reproduced in this turn): S03 context sharing OFF — Pass; S04 context sharing ON — Pass; S11 same-tab Pause/Resume — intermittent, **Partial** pending post-fix manual retest; S11 recovery after refresh — Pass; S13 completed-session review — Pass. The S11 code now snapshots and restores the paused screen and tab-only selections/responses/check-in; sensory inputs remain excluded from persistence. The 20 scenario rows and four cross-case checks below are supported by the automated/mock and browser evidence recorded in the [evaluation plan](docs/assignment-3-3-evaluation-plan.md). Earlier Part 3.2 browser acceptance is retained in [the acceptance record](docs/verification/part-3-2-acceptance.md), as historical evidence.
 
-## Safety and user control
+## Design, data, and safety
 
-Pause preserves place and requires explicit Resume. Stop/Leave exits without confirmation and never marks completion. With FastAPI stopped, browser acceptance opened static Emergency Support from start, step, paused, unsaved/error and completion states. Returning to unfinished grounding opens paused. Support requires no model/classifier, storage response or disclosure.
+The dusty blue/lavender design retains the calm low-stimulus direction. The revised sensory content lowers performance pressure but does not remove user effort. The new scene makes See examples concrete; a user can still skip. A lightweight check-in and optional recent-skill suggestion remain user-controlled. Stop does not count as completion.
 
-The displayed user-approved sentence is “Please contact 911 for emergency support.” It is text only, without a phone link or automatic calling/messaging. Instructor approval of that particular wording remains **Not verified**; approval of Gemini substitution does not establish wording approval. Prototype/fictional-use notices remain visible. No diagnosis, medical/treatment advice, distress inference or human-monitoring claim is authorized. Crisis-related text topics select the reviewed safety paragraph, not a risk score or safety assessment. See [safety](docs/safety.md).
+SQLite retains fictional session metadata, completion/stopped status, step/check-in and separate durations under the existing approved policy. Recent-skill suggestions use explicitly completed sessions only. Message saving is opt-in and OFF by default; context sharing is a separate control and also defaults OFF. Saved messages/session records remain until user deletion; per-session Delete removes its messages, and Clear removes sessions/messages/check-ins/durations/recent history and resets save opt-in OFF. The anonymous browser quota counter is the disclosed operational exception and is not a verified per-person or dollar limit. No sensory narratives, audio, transcripts, credentials, or inferred profile are stored/shared.
 
-## SQLite history and personalization
+Emergency Support is static frontend content, visible independently of FastAPI and any model. It opens without a provider request. The text currently approved by the user is “Please contact 911 for emergency support.” There is no automatic call/message integration. Instructor approval of that wording has not been verified. Fifer is a coursework prototype only; use fictional scenarios.
 
-SQLite stores fictional session ID, skill, start/end/update times, active/paused/stopped/completed status, resume step, optional check-in, revisions and separate setup/active/pause/support durations. Only acknowledged explicit Finish contributes to the optional recent-skill suggestion. Refresh restored Feel paused; Stop persisted stopped; deleting the completed session removed its suggestion.
+## Model behavior and live evidence
 
-Fictional text-message saving is opt-in and OFF by default, separately from context sharing. Session/chat metadata and opted-in messages remain until Delete/Clear; opting out keeps old messages. Delete removes linked messages. Clear removes session/message/check-in/duration/recent history and resets saving OFF. Acceptance observed zero saved messages with OFF, two with ON, retention after opt-out and zero history records after Clear.
+The Part 3.2 checkpoint recorded Gemini `gemini-2.5-flash`; after that checkpoint the owner approved updating the current text target to `gemini-3.5-flash-lite`. Limits remain 300 output tokens, 5 requests per chat session, 20 per anonymous browser per UTC day, 15-second timeout, no automatic retries. Normal mode is the labelled mock; live selection requires the two backend process gates. The model cannot change grounding order, diagnose, assess safety, invent therapeutic advice, or control Stop/Support. Gemini Live voice is separate and remains mock-only; no voice or audio is part of this text evaluation.
 
-Sensory text stays in tab memory and is excluded from save payloads and chat context. Its acceptance marker was absent from SQLite before Clear. No voice audio/transcripts are persisted. Additive initialization, parameterized SQL and temporary test databases preserve normal history. Failed writes show Unsaved changes; retry recovered queued completion. The normal database, backend/data/fifer.sqlite3, is excluded from Git.
-
-Daily quota tables retain only browser UUID hash, UTC day and attempt/start count. Today's counters survive Delete/Clear; older buckets are removed on a later request for that feature. This operational exception is disclosed. Clearing browser data can reset effective identity: it is not verified per-person enforcement.
-
-## Approved text contribution
-
-Chat stays outside grounding. Its approved target is `gemini-2.5-flash`, using reviewed Fifer app/skill/safety content only. Normal runtime is a **deterministic local mock**, not live model output. The HTTPX adapter is wired through FastAPI and mode-aware Chat UI; it requires both `FIFER_TEXT_PROVIDER=gemini` and `FIFER_TEXT_LIVE_AUTHORIZED=true` in the backend process, and partial settings fail closed. A key or browser action alone cannot enable it. No arbitrary files, web pages, private records or invented history are retrieved.
-
-Sharing starts OFF; explicit sharing supplies only actual completed-session count, latest completed skill and its optional check-in. No profile or previous messages are supplied. Missing key, provider error, invalid output, timeout and late-result handling passed mocked checks. Limits: 300 proposed output tokens, 5 attempts/chat session, 20/anonymous browser/UTC day, 15 seconds and no retries. The mock selects one short reviewed paragraph. See [text evidence](docs/text-chat.md).
-
-The attempted live Gemini text test did not work in PowerShell; no successful real model response was observed. Live access, generated behavior, usage and costs are **Not verified**. Mocks alone do not demonstrate the assignment's actual model contribution.
-
-## Gemini Live substitution and lifecycle
-
-The owner reports instructor approval of Gemini Live substitution. Target: `gemini-3.8-live`, separate from text Chat. The implemented path is browser Web Audio/PCM ↔ FastAPI WebSocket ↔ **in-process mock**. The real Gemini Developer API WSS connector remains unimplemented/disabled; mock voice never reads the key. API/AI Studio is the configured family, not Vertex.
-
-Unlike the described OpenAI demo, this uses no SDP, RTCPeerConnection or oai-events endpoint. One Live model is the proposed audio-to-audio contribution; text Chat is not a second-model voice pipeline. Course Section 5 makes speech optional; identical demo mechanics or assessed equivalence are not claimed.
-
-FastAPI owns [Live instructions](backend/live_voice.py): warm, brief, nonjudgmental, one focused question, reviewed context only; no medical advice, invented records, tools, second model or grounding/Support control. PCM is mono signed 16-bit little-endian: 16 kHz input, 24 kHz output. Mock output is a labelled synthetic tone, not speech understanding.
-
-Start requests audio-only permission; active status waits for confirmed mock setup. Mute stops capture/forwarding and sends manual-VAD activityEnd while preserving the session/playback. Unmute starts the next turn after response completion. End releases tracks, worklet, playback buffers/sources, AudioContext, timers and socket; FastAPI cancels setup and closes the mock upstream. Duplicate Starts/Ends and stale results are guarded. Interruption ends the session; seamless nonterminal barge-in is unfinished. Cleanup/maxima are mock-tested; abrupt termination remains best-effort.
-
-Voice bounds: 300 wall-clock seconds, five turns, 20 seconds/input turn, 15 seconds/response audio, 10-second setup/15-second response deadlines, no retries/reconnect, two accepted starts/browser/UTC day and one concurrent session/browser in the single-worker prototype. Setup failures after reservation count. These are not dollar caps: actual Google billing/account controls and separate test/cost authorization are prerequisites to any real call. See [voice evidence](docs/voice.md).
-
-## Timing
-
-The completed fictional automated browser run stored **31.021 s active**, **32.528 s setup**, **5.941 s paused** and **0.109 s Support**. Active time starts at the first exercise screen and includes navigation/application delays through Finish; setup, pauses and Support are separate. This fast run was below 90 seconds, not a student usability study or proof of comfortable 60–75-second pacing. Never force completion or auto-advance at a deadline.
+At the Assignment 3.2 evidence cutoff, the revised paraphrase-contract live sample was **Not run**. In later follow-up (2026-11-02, outside that checkpoint), one separately authorized fictional request (“How do I pause Fifer?”) first reached Gemini with HTTP 200 but was rejected as `invalid_output`; Chat showed the safe fallback and no source. After the narrow `thoughtSignature` parser fix, the owner reports that exactly one later request produced a generated Gemini text answer. This is owner-reported live evidence, not reproduced in this turn. The generated answer and displayed source title were not retained in the repository, so their contents and semantic relationship cannot now be independently reviewed. No retry or additional request was made here. Historical context: an earlier request returned `upstream_model_unavailable` (an upstream 404 was one condition collapsed into that reason); a metadata-only request returned no HTTP status. Those observations do not diagnose the later failure. One successful generated response establishes only that a response was observed once; matching source ID/shape does not prove semantic grounding, and mocks do not establish general live behavior, account-wide access, latency, or billing. Gemini Live voice remains mock-only.
 
 ## Verification and evidence
 
-[Acceptance matrix](docs/verification/part-3-2-acceptance.md): actions, expected/observed outcomes, commands and limits. Browser testing used an isolated ignored database, not normal history; SQLite inspection used read-only mode. **No explicitly authorized paid/live observation exists.**
+Checks for this revision used the existing project-local environment, fictional fixtures, mock transports and temporary test databases. No real provider request or `.env` read occurred.
 
-| Check | Actual result |
-| --- | --- |
-| Backend unittest suite, temporary SQLite and mock providers | Current: 62/62 passed; corrected setup-disconnect case also passed 25 consecutive focused reruns |
-| Frontend Node suite, grounding/voice mocks | 49 passed |
-| Vite build; pip check; npm ls; git diff --check | Passed |
-| Browser fixed flow, optional input, Pause/Stop, backend-off Support and save recovery | Passed in exercised scenarios |
-| Browser/SQLite refresh, consent, history/Delete/Clear and recent skill | Passed |
-| Voice denial/synthetic capture/Mute/End; interruption, late/failure/timeout cases | Mock evidence passed; Gemini Live voice remains mock-only and real provider behavior is Not verified |
-| Keyboard and 390×844 responsive smoke check | Passed; full accessibility/physical phone Not verified |
-| Credential-pattern scan and sensory sentinel | No matches across 56 inspected source/build files; no sentinel in test DB before Clear |
-| Dedicated lint, browser E2E and accessibility scripts | Not verified: no scripts found |
+- Full backend command from `backend/`: `$env:FIFER_TEXT_PROVIDER='mock'; $env:FIFER_TEXT_LIVE_AUTHORIZED='false'; .\.venv\Scripts\python.exe -B -m unittest discover -s tests -q` exceeded the 30-second bound and was interrupted without a test summary. It emitted a Starlette/httpx deprecation warning; this run did not identify the last test/setup location. An earlier Windows Proactor `_fallback_socketpair()` stall is a possible environment issue, not a confirmed explanation for this run.
+- Focused synchronous backend command from `backend/tests/`: `$env:FIFER_TEXT_PROVIDER='mock'; $env:FIFER_TEXT_LIVE_AUTHORIZED='false'; $env:PYTHONPATH=(Resolve-Path ..).Path; ..\.venv\Scripts\python.exe -B -m unittest test_gemini_text.GeminiDiagnosticTests test_gemini_text.GeminiResponseContractTests -v` — **12 passed**.
+- Frontend `npm --prefix frontend test` — **58 passed, 0 failed**.
+- Production build `npm --prefix frontend run build` — **passed**, 28 modules transformed.
+- Python syntax check from `backend/`, `.\.venv\Scripts\python.exe -B -m py_compile main.py chat.py gemini_text.py tests/test_api.py tests/test_chat.py tests/test_gemini_text.py` — **passed**.
+- `git diff --check` — passed. Markdown structure check found exactly one level-1 heading; all checked local report/evidence links exist. Final staged secret/exclusion review follows.
 
-![Actual acceptance screenshot: mobile See scene](docs/verification/part-3-2-acceptance/mobile-see.png)
+The S11 reducer now captures and restores the exact same-tab screen, selected examples, typed optional answers and check-in across Pause/Resume. Focused tests cover all sequence positions, 50 repeat cycles, a stale-state simulation, Support return and Stop/privacy behavior. The saved snapshot is transient and excluded from session persistence; Stop clears it. These tests pass within the frontend suite. Manual post-fix browser retest is pending, so S11 remains Partial. Refresh recovery remains the owner-reported pass, and by design it does not restore sensory inputs.
 
-This actual screenshot was copied unchanged from acceptance evidence and shows fictional UI only. Existing [initial UI](docs/part-3-2.md) and [storage evidence](docs/part-3-2-storage.md) describe earlier checkpoints, not the latest scene/voice state. No screenshot or recording was invented. Recordings: **Not yet available**.
+Earlier Part 3.2 automated timing recorded 31.021 seconds active, 32.528 seconds setup, 5.941 seconds paused and 0.109 seconds in Support. These are application/test timings, not a human usability measurement. Setup is separate; pauses and Support are outside the active target. The target remains approximately 60–75 seconds and under 90 where feasible, without forced completion.
 
-Revised teardown evidence: `test_disconnect_during_setup_closes_wire_and_allows_fresh_session` previously raised `concurrent.futures.CancelledError` while leaving the Starlette TestClient WebSocket context. The abrupt-disconnect portion now drives the ASGI endpoint directly and verifies mock-upstream close plus reservation release; a separate fresh TestClient session verifies restart. The full suite passed 62/62, followed by 25/25 focused passes. The Starlette TestClient/httpx deprecation warning remains; no unapproved `httpx2` dependency was added. This does not verify real Gemini Live teardown.
+Surprising finding: structurally valid mock output with the expected source ID can still contain unsupported meaning and pass validation. Shape/source-ID checks do not establish semantic grounding. Untested limitations include semantic review of the one owner-reported live answer (answer and source title are not retained), repeatability beyond that one response, post-fix manual S11 behavior, and Gemini Live voice, which remains mock-only.
+## AI disclosure and evidence links
 
-## AI use and revised approach
+Codex assisted with code, tests, documentation, and organizing this evidence. Exact Codex model/effort is not available and is not asserted. The changed response behavior is limited to a concise paraphrase from one retrieved curated Fifer source, with only explicitly shared supplied session-summary fields permitted. Test fixtures use fictional data and mocked transports. GPT image generation was used earlier for the proposed flow diagram; the student reviewed/adapted it. Figma/Figma Make remains planned for detailed screens. No provider call occurred during this documentation update. The [curated redacted evidence log](prompts/assignment-3-3-evidence.md) records the revised approach and test findings without private chat exports.
 
-[AI-USE.md](AI-USE.md) records Codex's code/documentation/test roles, target model IDs, the GPT-generated 3.1 diagram and planned Figma work. Exact Codex model/effort and image-model version are not verified. [Curated redacted prompts/change/test/decision log](prompts/assignment-3-2-evidence.md) records sensory revision, bounded text/voice authorization and acceptance.
+Evidence links: [Part 3.1 flow](docs/mockups/fifer-assignment-3-1-flow.png), [Part 3.2 screenshot](docs/verification/part-3-2-acceptance/mobile-see.png), [design](docs/design.md), [safety](docs/safety.md), [text adapter notes](docs/text-chat.md), [voice mock evidence](docs/voice.md), [course requirements summary](docs/assignment-3-submission-requirements.md), and [evaluation plan](docs/assignment-3-3-evaluation-plan.md). These are repository-relative links and resolve within the pushed repository, subject to repository access.
 
-Revised approach: setup originally awaited provider acknowledgement before reading End/disconnect. Inspection identified delayed cleanup risk; setup now races local shutdown and is canceled/closed. A later TestClient context-exit cancellation made the full suite inconsistent, so the teardown test was split into a direct-ASGI abrupt-disconnect assertion plus a separate fresh-session assertion; current repeated mock evidence is green, and no live call is claimed. An actual read-only SQLite command failed from shell quoting and succeeded via stdin without altering data. Generic sensory choices were replaced by examples matching the actual picture. No credentials, private conversations or research-participant material are included.
+## Remaining before submission
 
-## Unfinished items and submission review
-
-The skill, persistence, independent Support, and mock-tested text/voice paths work in the exercised scope. The text adapter is wired behind explicit backend gates, but the attempted PowerShell live Gemini text test did not produce a response; no successful real model response was observed. Gemini Live voice remains mock-only. Full Part 3.2 acceptance is **incomplete** because an actual model contribution has not been demonstrated. No morning change is promised as submitted functionality.
-
-Also unresolved: submitted-version commit and publication of new evidence links; instructor confirmation of support wording; detailed Figma/Figma Make screens; hardware microphone/provider cleanup, full-duration voice, accessibility/contrast/screen-reader, physical-phone/cross-browser and clean-checkout verification. The credential scan is limited, not a full historical/forensic audit. Passing mocks do not prove clinical benefit or live-model safety.
-
-Part 3.3 requires at least fifteen fictional scenarios, three explicit behavior checks, a small relevant live selection, and demonstration/process-recording evidence. These are future work. The current submission limitation is the absent successful real model observation and unfinished detailed Figma/hardware/accessibility evidence. Run/recreation commands: [README.md](README.md).
+Manually retest S11 Pause/Resume after the new snapshot fix; provide the recorded video link and confirm its contents cover both the finished-app demonstration and failure/evidence/decision process; complete detailed Figma/Figma Make screens if required; verify instructor approval of the static Support wording; run a clean-checkout recreation when dependency-install approval is available; and submit the report/artifacts through the course system. The clean-checkout instructions were reviewed but not executed because recreating the environment requires dependency installation. The successful live Gemini text sample is limited evidence; output structure and matching source ID do not prove semantic grounding.

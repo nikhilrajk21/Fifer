@@ -7,7 +7,7 @@ import { renderToString } from 'vue/server-renderer'
 import { CHECKINS, SEQUENCE, SEE_SCENE, STEPS, createExperience, transition } from './grounding.js'
 import { createSaveQueue, newSessionRecord, sessionSnapshot, sessionPayload, restoreExperience } from './persistence.js'
 import { request } from './api.js'
-import { anonymousBrowserId, createTextRequest, TEXT_TIMEOUT_MS } from './chat.js'
+import { anonymousBrowserId, contextNotice, createTextRequest, TEXT_TIMEOUT_MS } from './chat.js'
 
 const send = (state, type, now = state.lastAt + 100, value) => transition(state, { type, value }, now)
 const started = () => send(createExperience(0), 'BEGIN', 1000)
@@ -39,6 +39,150 @@ test('chat cancellation ignores a late mock reply after Stop, Support or navigat
   }
 })
 
+test('Chat labels the backend-selected Gemini adapter separately from its deterministic mock', () => {
+  const chat = readFileSync(new URL('./components/ChatPanel.vue', import.meta.url), 'utf8')
+  assert.match(chat, /config\?\.mode === 'gemini'/)
+  assert.match(chat, /Gemini text assistant configured/)
+  assert.match(chat, /Mock responses from curated Fifer content\. No Gemini calls\./)
+  assert.match(chat, /config\.mode === 'gemini' \? 'Gemini may return one reviewed curated paragraph\.' : 'the local mock returns one reviewed curated paragraph\.'/)
+})
+
+test('Chat refreshes backend mode before sending and labels provider fallback distinctly', () => {
+  const chat = readFileSync(new URL('./components/ChatPanel.vue', import.meta.url), 'utf8')
+  assert.match(chat, /window\.addEventListener\('focus', onWindowFocus\)/)
+  assert.match(chat, /if \(!await refreshConfig\(\) \|\| !config\.value \|\| ended\.value\) return/)
+  assert.match(chat, /mode: result\.mode/)
+  assert.match(chat, /message\.fallback \? 'Fifer safe fallback'/)
+  assert.match(chat, /Fixed fallback shown; no generated answer was returned\./)
+  assert.match(chat, /v-else class="chat-mode"><strong>Chat mode not confirmed/)
+  assert.match(chat, /!modeFresh/)
+  assert.match(chat, /reasonCode: result\.reason_code/)
+  assert.match(chat, /Diagnostic code: \{\{ message\.reasonCode \}\}/)
+})
+
+test('context OFF clearly withholds history; ON note uses only approved supplied fields', () => {
+  const off = contextNotice({})
+  assert.match(off, /history was not shared/)
+  assert.match(off, /cannot determine it/)
+  assert.doesNotMatch(off, /5-4-3-2-1|A little better|completed sessions/i)
+
+  const on = contextNotice({ completed_sessions: 2, recent_completed_skill: '5-4-3-2-1',
+    latest_completed_checkin: 'A little better' })
+  assert.equal(on, 'For this reply, you chose to share: 2 completed sessions; latest completed skill: 5-4-3-2-1; latest check-in: “A little better”.')
+  const invalid = contextNotice({ completed_sessions: 2, recent_completed_skill: '5-4-3-2-1',
+    latest_completed_checkin: null, profile: 'must not render' })
+  assert.match(invalid, /could not be confirmed/)
+  assert.doesNotMatch(invalid, /must not render|5-4-3-2-1/)
+
+  const chat = readFileSync(new URL('./components/ChatPanel.vue', import.meta.url), 'utf8')
+  assert.match(chat, /contextNote: contextNotice\(sharing \? result\.context_shared : \{\}\)/)
+  assert.match(chat, /App-generated context note · not model output/)
+  assert.match(chat, /class="chat-context-note" role="note"/)
+})
+
+test('Pause/Resume keeps exact step and tab-only inputs, with focus returned to the step heading', () => {
+  let state = started()
+  for (const screen of SEQUENCE) {
+    assert.equal(state.screen, screen)
+    if (STEPS.some(item => item.id === screen)) {
+      const choice = STEPS.find(item => item.id === screen).choices[0]
+      state = send(state, 'SELECT', state.lastAt + 1, choice)
+      state = send(state, 'WRITE', state.lastAt + 1, `Fictional ${screen} note`)
+    } else if (screen === 'checkin') {
+      state = send(state, 'CHECKIN', state.lastAt + 1, 'A little better')
+    }
+    const beforePause = { screen: state.screen, selections: state.selections,
+      responses: state.responses, checkin: state.checkin }
+    const paused = send(state, 'PAUSE', state.lastAt + 100)
+    assert.equal(paused.screen, beforePause.screen)
+    assert.equal(paused.overlay, 'pause')
+    assert.deepEqual(paused.selections, beforePause.selections)
+    assert.deepEqual(paused.responses, beforePause.responses)
+    assert.equal(paused.checkin, beforePause.checkin)
+    assert.notEqual(paused.pauseSnapshot, null)
+    // A stale presentation update while paused must not move the saved place.
+    const stale = { ...paused, screen: 'see', selections: {}, responses: {}, checkin: null }
+    state = send(stale, 'RESUME', paused.lastAt + 1000)
+    assert.equal(state.screen, beforePause.screen)
+    assert.equal(state.overlay, null)
+    assert.equal(state.pauseSnapshot, null)
+    assert.deepEqual(state.selections, beforePause.selections)
+    assert.deepEqual(state.responses, beforePause.responses)
+    assert.equal(state.checkin, beforePause.checkin)
+    if (screen !== 'complete') state = send(state, 'NEXT')
+  }
+
+  const app = readFileSync(new URL('./App.vue', import.meta.url), 'utf8')
+  assert.match(app, /previous === 'pause' && experience\.value\.started[\s\S]*activity-heading/)
+  assert.match(app, /!\['active', 'paused'\]\.includes\(record\?\.status\)/)
+})
+
+test('Pause snapshot is tab-only, deeply copied, and cleared by Stop', () => {
+  let state = send(started(), 'SELECT', 1200, STEPS[0].choices[0])
+  state = send(state, 'WRITE', 1300, 'Fictional window')
+  const paused = send(state, 'PAUSE', 1400)
+  state.selections.see.push('mutated after pause')
+  state.responses.see = 'mutated after pause'
+  const resumed = send(paused, 'RESUME', 1500)
+  assert.deepEqual(resumed.selections.see, [STEPS[0].choices[0]])
+  assert.equal(resumed.responses.see, 'Fictional window')
+
+  const stopped = send(send(state, 'PAUSE'), 'STOP')
+  assert.equal(stopped.pauseSnapshot, null)
+  const payload = sessionPayload(sessionSnapshot(newSessionRecord('fictional-id', '2026-11-02T12:00:00Z'),
+    state, stopped, 'STOP'), 0)
+  assert.equal('pauseSnapshot' in payload, false)
+  assert.doesNotMatch(JSON.stringify(payload), /Fictional window|mutated after pause/)
+})
+
+test('rapid repeated Pause/Resume cycles keep the exact check-in screen and selection', () => {
+  let state = send(send(send(started(), 'NEXT'), 'NEXT'), 'CHECKIN', 1400, 'A little better')
+  state = { ...state, selections: { feel: ['Imagined soft fabric'] },
+    responses: { feel: 'Fictional comfortable fabric' } }
+  for (let cycle = 0; cycle < 50; cycle++) {
+    const paused = send(state, 'PAUSE', state.lastAt + 1)
+    const interleaved = { ...paused, screen: 'see', selections: {}, responses: {}, checkin: null }
+    state = send(interleaved, 'RESUME', paused.lastAt + 2)
+    assert.equal(state.screen, 'checkin')
+    assert.equal(state.checkin, 'A little better')
+    assert.deepEqual(state.selections.feel, ['Imagined soft fabric'])
+    assert.equal(state.responses.feel, 'Fictional comfortable fabric')
+  }
+})
+
+test('opening Support from Pause and returning preserves the paused snapshot until explicit Resume', () => {
+  let state = send(started(), 'SELECT', 1200, STEPS[0].choices[0])
+  state = send(state, 'WRITE', 1300, 'Fictional classroom detail')
+  state = send(state, 'PAUSE', 1400)
+  state = send(state, 'SUPPORT', 1500)
+  assert.equal(state.overlay, 'support')
+  assert.equal(state.pauseSnapshot.screen, 'see')
+  state = send(state, 'CLOSE_SUPPORT', 1800)
+  assert.equal(state.overlay, 'pause')
+  state = send({ ...state, screen: 'taste', selections: {}, responses: {} }, 'RESUME', 1900)
+  assert.equal(state.screen, 'see')
+  assert.deepEqual(state.selections.see, [STEPS[0].choices[0]])
+  assert.equal(state.responses.see, 'Fictional classroom detail')
+  assert.equal(state.overlay, null)
+})
+
+test('saved resume restores permitted paused metadata only and never restores sensory inputs', () => {
+  for (const screen of SEQUENCE) {
+    const pausedRecord = { id: 'fictional-id', ...sessionSnapshot(
+      newSessionRecord('fictional-id', '2026-11-02T12:00:00Z'),
+      { ...started(), screen, checkin: screen === 'hear' ? 'A little better' : null,
+        selections: { see: ['A window'] }, responses: { see: 'Fictional window' } },
+      { ...started(), screen, overlay: 'pause', checkin: screen === 'hear' ? 'A little better' : null,
+        selections: { see: ['A window'] }, responses: { see: 'Fictional window' } }, 'PAUSE') }
+    const restored = restoreExperience(pausedRecord, 900000)
+    assert.equal(restored.screen, screen)
+    assert.equal(restored.overlay, 'pause')
+    assert.equal(restored.checkin, pausedRecord.checkin)
+    assert.deepEqual(restored.selections, {})
+    assert.deepEqual(restored.responses, {})
+  }
+})
+
 test('text requests time out without retries and normalize backend/quota failures', async () => {
   assert.equal(TEXT_TIMEOUT_MS,15000)
   let calls=0
@@ -65,6 +209,14 @@ const componentCode = compiled.content.replace(/import \{([^}]+)\} from ["']vue[
 const GroundingPrompt = new Function('Vue', componentCode)(Vue)
 const renderPrompt = (step, response = '') => renderToString(Vue.createSSRApp(GroundingPrompt, { step, selected: [], response }))
 
+const historySource = readFileSync(new URL('./components/HistoryPanel.vue', import.meta.url), 'utf8')
+const { descriptor: historyDescriptor } = parse(historySource)
+const compiledHistory = compileScript(historyDescriptor, { id: 'history-panel-test', inlineTemplate: true })
+const historyCode = compiledHistory.content.replace(/import \{([^}]+)\} from ["']vue["'];?/g,
+  (_, bindings) => `const {${bindings.replace(/\bas\b/g, ':')}} = Vue;`)
+  .replace('export default', 'return')
+const HistoryPanel = new Function('Vue', historyCode)(Vue)
+
 test('See examples correspond to five drawn objects in the single local original scene', () => {
   assert.equal(STEPS.filter(step => step.image).length, 1)
   assert.equal(STEPS[0].image, SEE_SCENE)
@@ -79,6 +231,27 @@ test('See examples correspond to five drawn objects in the single local original
   }
   assert.doesNotMatch(picture, /<script|<image|<foreignObject|\bhref=|url\(/i)
   assert.match(SEE_SCENE.credit, /Original Fifer/)
+})
+
+test('selected history row opens an inline review of saved fields; completed item has no resume action', async () => {
+  const first = { id: 'fictional-earlier', skill: '5-4-3-2-1', status: 'stopped',
+    started_at: '2026-11-01T10:00:00Z', ended_at: '2026-11-01T10:00:12Z', current_step: 'feel',
+    checkin: null, setup_ms: 500, active_ms: 7000, paused_ms: 2500, support_ms: 0 }
+  const selected = { ...first, id: 'fictional-completed', status: 'completed', current_step: 'complete',
+    ended_at: '2026-11-01T10:02:00Z', checkin: 'A little better' }
+  const html = await renderToString(Vue.createSSRApp(HistoryPanel, {
+    history: { settings: { message_opt_in: false }, sessions: [first, selected], chats: [] },
+    detail: { session: selected, conversation: null, messages: [] }, busy: false, pending: 0, error: ''
+  }))
+  assert.match(html, /Session review/)
+  assert.match(html, /5-4-3-2-1 \/ completed/)
+  assert.match(html, /<dt>Saved step<\/dt><dd>complete<\/dd>/)
+  assert.match(html, /A little better/)
+  assert.match(html, /0\.5 s \/ 7\.0 s/)
+  assert.match(html, /2\.5 s \/ 0\.0 s/)
+  assert.match(html, /aria-expanded="true"/)
+  assert.doesNotMatch(html, /Resume saved activity/)
+  assert.match(historySource, /detail\?\.session\?\.id === record\.id/)
 })
 
 test('actual See prompt renders descriptive local image and an optional labelled keyboard input', async () => {
